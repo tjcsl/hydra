@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
     char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
     char* executable, hmhost;
-    while((currarg = getopt(argc, argv, "d:s:e:")) != -1) {
+    while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
         switch(currarg) {
             case 'd':
                 datafiles[datafiles_count++] = optarg;
