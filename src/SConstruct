@@ -1,0 +1,3 @@
+SConscript(['hydrarun/SConscript'
+           ,'hydramd/SConscript'])
+           
