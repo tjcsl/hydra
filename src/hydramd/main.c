@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <syslog.h>
+#include <string.h>
 
 //TODO:Make this stuff load from config file
 #define PIDFILE "./hydramd.pid"
@@ -22,7 +23,6 @@ void handlesignal(int sig) {
                 lockf(i, F_UNLCK, 0);
             }
             //Close logfiles
-            closelog();
             exit(0);
             break;
     }
@@ -55,7 +55,7 @@ int main(int argc, const char** argv) {
 
     lfp = open("hydra.lock", O_RDWR | O_CREAT, 06400);
     if (lfp < 0) exit(1); /*something has already locked the lockfile*/
-    if (lockf(lfp,F_TOCK,0) < 0) exit(0); /*We can't lock */
+    if (lockf(lfp,F_TLOCK,0) < 0) exit(0); /*We can't lock */
 
     sprintf(str, "%d\n", getpid());
     write(lfp, str, strlen(str)); /*record PID to the lockfile*/
@@ -66,5 +66,9 @@ int main(int argc, const char** argv) {
     signal(SIGTERM, handlesignal);
 
     openlog("hydramd", LOG_PID, LOG_DAEMON);
-    syslog(LOG_INFO, "Hydra Master daemon, fully started up, now accepting connections");
+    syslog(LOG_EMERG, "Hydra Master daemon, fully started up, now accepting connections");
+
+    for (;;) {
+        sleep(10);
+    }
 }
