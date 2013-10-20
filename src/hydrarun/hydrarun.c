@@ -19,7 +19,8 @@ int main(int argc, char* argv[]){
     datafiles_count = slotsset = execset = currarg = hmhostset = 0;
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
     char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
-    char* executable, hmhost;
+    char* executable;
+    char** hmhost;
     while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
         switch(currarg) {
             case 'd':
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]){
                 execset = 1;
                 break;
             case 'h':
-                hmhost = optarg;
+                (*hmhost) = optarg;
                 hmhostset = 1;
                 break;
             case '?':
@@ -69,7 +70,7 @@ int main(int argc, char* argv[]){
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    status = getaddrinfo(hmhost, "51423", &hints, &result);
+    status = getaddrinfo(*hmhost, "51423", &hints, &result);
     if(status != 0){
         fprintf(stderr, "Network error, exiting.\n");
         return 2;
