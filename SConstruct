@@ -1,1 +1,2 @@
-SConscript('src/SConstruct', variant_dir='build')
+VariantDir('build', 'src')
+SConscript('build/SConscript')
