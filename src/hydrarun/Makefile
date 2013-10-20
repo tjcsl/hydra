@@ -1,2 +1,2 @@
 $(OUTDIR)/hydrarun: hydrarun.c
-	gcc $(CFLAGS) $^ -o $@ -L$(OUTDIR) -lhydrautil
+	gcc $(CFLAGS) $(INC) $^ -o $@ -L$(OUTDIR) -lhydrautil
