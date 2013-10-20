@@ -19,7 +19,7 @@
 void daemonize(char *);
 void sigterm_handler(int);
 
-int main(int argc, char **argv) {
+int main(__attribute__((unused))int argc, __attribute__((unused))char **argv) {
     daemonize(SLAVE_NAME);
     signal(SIGTERM, sigterm_handler);
     while(1) {
@@ -64,7 +64,7 @@ void daemonize(char *d_name) {
     syslog(LOG_INFO, "Daemonization successful");
 }
 
-void sigterm_handler(int signal) {
+void sigterm_handler(__attribute__((unused))int signal) {
     syslog(LOG_INFO, "Recieved SIGTERM; Exiting");
     exit(0);
 }

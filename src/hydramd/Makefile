@@ -1,5 +1,5 @@
 $(OUTDIR)/hydramd: main.c hydramaster.c
-	gcc $^ -o $@
+	gcc $(CFLAGS) $^ -o $@
 
 main.c hydramaster.c: hydramaster.h
 

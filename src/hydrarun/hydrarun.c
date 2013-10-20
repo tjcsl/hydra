@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -18,7 +19,6 @@ int main(int argc, char* argv[]){
     int datafiles_count, slots, slotsset, execset, currarg, hmhostset;
     datafiles_count = slotsset = execset = currarg = hmhostset = 0;
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
-    char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
     char* executable;
     char** hmhost = malloc(sizeof(char*));
     while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
@@ -85,4 +85,6 @@ int main(int argc, char* argv[]){
         return 2;
     }
     close(sd);
+
+    return 0;
 }

@@ -1,4 +1,5 @@
 export MAKEFLAGS := --no-print-directory
+export CFLAGS := -Wall -Wextra -Werror
 export OUTDIR := $(CURDIR)/build
 
 all: $(OUTDIR)

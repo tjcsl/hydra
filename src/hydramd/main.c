@@ -17,7 +17,6 @@
 #define PIDFILE "./hydramd.pid"
 
 void handlesignal(int sig) {
-    int i;
     switch(sig) {
         case SIGTERM:
             syslog(LOG_INFO, "Shutting down hydramd");
@@ -69,8 +68,10 @@ void daemonize() {
     syslog(LOG_INFO, "Hydra Master daemon daemonized, now initializing");
 }
 
-int main(int argc, const char** argv) {
+int main(__attribute__((unused))int argc, __attribute__((unused))const char** argv) {
     daemonize();
 
     hydra_listen();
+
+    return 0;
 }

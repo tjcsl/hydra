@@ -90,12 +90,15 @@ void init_sockets() {
 void hydra_listen() {
     struct sockaddr addr;
     socklen_t addrlen;
-    int i;
+    int ret;
     init_sockets();
     
-    for (;;) {
-        i = accept(listen_sock, &addr, &addrlen);
-        syslog(LOG_INFO, "recieved connection");
+    while (1) {
+        ret = accept(listen_sock, &addr, &addrlen);
+	if(ret == -1)
+                hydra_exit_error("accept failed");
+	else
+                syslog(LOG_INFO, "recieved connection");
     }
 }
 
