@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
     char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
     char* executable;
-    char** hmhost;
+    char** hmhost = malloc(sizeof(char*));
     while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
         switch(currarg) {
             case 'd':
