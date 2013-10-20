@@ -16,18 +16,16 @@ initscript.
 
 Distribute `hydrarun` to your users. Usage is 
 ```
-hydrarun [--datafile|-d <data> [--datafile|-d <data> ...]] --slots|-s NUM <executable> -- [args]
-    -d          |
-    --datafile  | Specifies a file to be uploaded and placed in the same 
-                |       directory as the executable on the slaves.
-    -s          |
-    --slots     | Specifies the number of slots to request. Essentialy
-                |       translates to number of CPU cores that will be used to
-                |       run your program.
-    <executable>| The first argument that does not match -d or -s (or their long
-                |       versions) is assumed to be the name of the executable to
-                |       run on the cluster
-    [args]      | Any additional arguments are forwarded to your application
+hydrarun [-d <data> [-d <data> ...]] -s NUM -e <executable> -- [args]
+    -d		    | Specifies a file to be uploaded and placed in the same 
+                    |       directory as the executable on the slaves.
+    -s              | Specifies the number of slots to request. Essentialy
+                    |       translates to number of CPU cores that will be used to
+                    |       run your program.
+    -e <executable> | The first argument that does not match -d or -s (or their long
+                    |       versions) is assumed to be the name of the executable to
+                    |       run on the cluster
+    [args]          | Any additional arguments are forwarded to your application
 
 
 ```
