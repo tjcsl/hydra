@@ -6,7 +6,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#define MASTER_HOST "hydra.csl.tjhsst.edu"
 
 void display_help(char* argv[]){
     printf("Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]\n", argv[0]);
@@ -70,18 +69,18 @@ int main(int argc, char* argv[]){
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    status = getaddrinfo(MASTER_HOST, "51423", &hints, &result);
+    status = getaddrinfo(hmhost, "51423", &hints, &result);
     if(status != 0){
-        printf("Network error, exiting.\n");
+        fprintf(stderr, "Network error, exiting.\n");
         return 2;
     }
     int sd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if(sd == -1){
-        printf("Network error, exiting.\n");
+        fprintf(stderr, "Network error, exiting.\n");
         return 2;
     }
     if(connect(sd, result->ai_addr, result->ai_addrlen) == -1){
-        printf("Network error, exiting.\n");
+        fprintf(stderr, "Network error, exiting.\n");
         return 2;
     }
     close(sd);
