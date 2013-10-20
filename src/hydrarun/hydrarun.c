@@ -18,7 +18,6 @@ int main(int argc, char* argv[]){
     int datafiles_count, slots, slotsset, execset, currarg, hmhostset;
     datafiles_count = slotsset = execset = currarg = hmhostset = 0;
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
-    char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
     char* executable;
     char** hmhost = malloc(sizeof(char*));
     while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
