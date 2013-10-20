@@ -3,18 +3,18 @@
 #include <string.h>
 
 void display_help(char* argv[]){
-    printf("Usage: %s [-d <data> [-d <data ...]] -s NUM -e <executable> [-- [args]]\n", argv[0]);
+    printf("Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]\n", argv[0]);
 }
 
 int main(int argc, char* argv[]){
     // Parse the arguments
     extern char *optarg;
     extern int optind;
-    int datafiles_count, slots, slotsset, execset, currarg; 
-    datafiles_count = slotsset = execset = currarg = 0;
+    int datafiles_count, slots, slotsset, execset, currarg, hmhostset;
+    datafiles_count = slotsset = execset = currarg = hmhostset = 0;
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
     char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
-    char* executable;
+    char* executable, hmhost;
     while((currarg = getopt(argc, argv, "d:s:e:")) != -1) {
         switch(currarg) {
             case 'd':
@@ -28,12 +28,16 @@ int main(int argc, char* argv[]){
                 executable = optarg;
                 execset = 1;
                 break;
+            case 'h':
+                hmhost = optarg;
+                hmhostset = 1;
+                break;
             case '?':
                 display_help(argv);
                 return 1;
         }
     }
-    if(!slotsset || !execset) {
+    if(!slotsset || !execset || !hmhostset) {
         display_help(argv);
         return 1;
     }
