@@ -1,5 +1,4 @@
 #include "hydramaster.h"
-#include "hydracommon.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -8,16 +7,35 @@
 #include <sys/syslog.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include "hydracommon.h"
+#include "hydranet.h"
+
+void hydra_read_connection(int fd);
 
 void hydra_listen() {
     struct sockaddr addr;
     socklen_t addrlen;
-    int i;
+    int fd, i;
     int listen_sock = hydra_get_highsock_d(NULL, "51432", AI_PASSIVE);
     listen(listen_sock, 20);
     
     for (;;) {
-        i = accept(listen_sock, &addr, &addrlen);
+        fd = accept(listen_sock, &addr, &addrlen);
         syslog(LOG_INFO, "recieved connection");
+        
+        i = fork();
+        if (i == 0){
+            close(listen_sock);
+            hydra_read_connection(fd);
+        }
+    }
+}
+
+void hydra_read_connection(int fd) {
+    char* buff;
+    for (;;) {
+        buff = hydra_read_packet(fd);
+        syslog(LOG_INFO, "%256s", buff);
+        free(buff);
     }
 }
