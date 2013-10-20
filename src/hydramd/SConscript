@@ -1,1 +1,1 @@
-Program('hydramd', ['main.c'])
+Program('hydramd', ['main.c', 'hydramaster.c'])
