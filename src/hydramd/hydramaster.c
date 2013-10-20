@@ -20,7 +20,7 @@ void init_sockets() {
     struct addrinfo *ret, *info;
     struct addrinfo hints;
     int i;
-    
+
     memset((void*)&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
@@ -77,7 +77,7 @@ void init_sockets() {
     }
 
     freeaddrinfo(ret);
-    
+
     syslog(LOG_DEBUG, "Bind status:%d", bound);
 
     if (!bound) {
@@ -90,12 +90,15 @@ void init_sockets() {
 void hydra_listen() {
     struct sockaddr addr;
     socklen_t addrlen;
-    int i;
+    int ret;
     init_sockets();
-    
-    for (;;) {
-        i = accept(listen_sock, &addr, &addrlen);
-        syslog(LOG_INFO, "recieved connection");
+
+    while (1) {
+        ret = accept(listen_sock, &addr, &addrlen);
+        if(ret == -1)
+            hydra_exit_error("accept failed");
+        else
+            syslog(LOG_INFO, "recieved connection");
     }
 }
 
