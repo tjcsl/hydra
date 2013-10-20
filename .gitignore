@@ -1,4 +1,6 @@
 #vim temp files
 .*.swp
+#You Complete Me config
+.ycm_extra_conf.py*
 #build stuffs
 build/
