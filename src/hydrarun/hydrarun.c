@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     /**
      * Make network connection
      */
-    struct addrinfo hints, *result, *q;
+    struct addrinfo hints, *result;
     int status;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
