@@ -1,12 +1,12 @@
 INC=-I$(CURDIR)/hydrautil
 export INC
 
-all: hydramd hydrarun hydrasd libhydrautil.a
+all: hydramd hydrarun hydrasd
 
-hydramd hydrarun hydrasd: libhydrautil.a
+hydramd hydrarun hydrasd: $(OUTDIR)/libhydrautil.a
 	@$(MAKE) -C $@
 
-libhydrautil.a:
+$(OUTDIR)/libhydrautil.a:
 	@$(MAKE) -C hydrautil
 
 .PHONY: hydramd hydrarun hydrasd
