@@ -1,3 +1,0 @@
-env = Environment()
-hydrarun = env.Program(target='hydrarun', source=['hydrarun.c'])
-Default(hydrarun)
