@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#define MASTER_HOST "hydra.csl.tjhsst.edu"
 
 void display_help(char* argv[]){
     printf("Usage: %s [--datafile|-d <data> [--datafile|-d <data ...]] --slots|-s NUM <executable> [-- [args]]\n", argv[0]);
@@ -11,7 +17,9 @@ int main(int argc, char* argv[]){
         display_help(argv);
         return 1;
     }
-    // Parse the arguments
+    /**
+     * Parse arguments
+     */
     int current_arg, datafiles_count, slots, argparse_mode, current_earg;
     datafiles_count = argparse_mode = current_earg = 0;
     char** datafiles = malloc(sizeof(char*) * argc); // A safe number
@@ -43,7 +51,9 @@ int main(int argc, char* argv[]){
             current_earg++;
         }
     }
-    // Done with arg parsing, output arguments to user
+    /**
+     * Output parsed args
+     */
     printf("Hydra: running \"%s\" with %d slots\n", executable, slots);
     int i;
     if(datafiles_count > 0){
@@ -58,4 +68,27 @@ int main(int argc, char* argv[]){
         printf("%s ", eargs[i]);
     }
     printf("\n");
+    /**
+     * Make network connection
+     */
+    struct addrinfo hints, *result, *q;
+    int status;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    status = getaddrinfo(MASTER_HOST, "51423", &hints, &result);
+    if(status != 0){
+        printf("Network error, exiting.\n");
+        return 2;
+    }
+    int sd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if(sd == -1){
+        printf("Network error, exiting.\n");
+        return 2;
+    }
+    if(connect(sd, result->ai_addr, result->ai_addrlen) == -1){
+        printf("Network error, exiting.\n");
+        return 2;
+    }
+    close(sd);
 }
