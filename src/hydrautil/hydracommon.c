@@ -1,5 +1,21 @@
 #include "hydracommon.h"
 
+#include <errno.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/syslog.h>
+#include <sys/signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define BOUND6 0x1
+#define BOUND4 0x2
+
 void hydra_daemonize(const char* progname, const char* running_directory 
                     ,const char* lockfile, void (*sighandler)(int)) {
     int i, lfp;
@@ -13,6 +29,7 @@ void hydra_daemonize(const char* progname, const char* running_directory
     i = fork();
     if (i < 0) {
         hydra_exit_error("Fork failed");
+    }
     if (i > 0) {
         exit(0);
     }
@@ -46,7 +63,7 @@ void hydra_daemonize(const char* progname, const char* running_directory
     signal(SIGTSTP, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
-    signal(SIGHUP, signalhandler);
+    signal(SIGHUP, sighandler);
     signal(SIGTERM, sighandler);
 
     syslog(LOG_INFO, "Daemon successfully daemonized");
@@ -60,6 +77,7 @@ int hydra_get_highsock_d(const char* host, const char* service, int flags) {
     struct addrinfo *ret, *info;
     struct addrinfo hints;
     int i;
+    int listen_sock, bound;
     
     memset((void*)&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET6;
@@ -121,5 +139,5 @@ int hydra_get_highsock_d(const char* host, const char* service, int flags) {
         hydra_exit_error("Failed to bind socket, exiting");
     }
 
-    listen(listen_sock, 20);
+    return listen_sock;
 }

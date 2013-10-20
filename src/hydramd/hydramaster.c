@@ -1,18 +1,13 @@
 #include "hydramaster.h"
 #include "hydracommon.h"
 
-#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/syslog.h>
 #include <sys/types.h>
 #include <netdb.h>
-
-#define BOUND6 0x1
-#define BOUND4 0x2
 
 void hydra_listen() {
     struct sockaddr addr;

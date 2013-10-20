@@ -6,9 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/syslog.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <string.h>
 #include "hydramaster.h"
