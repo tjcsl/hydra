@@ -14,8 +14,8 @@ int main(int argc, char* argv[]){
     // Parse the arguments
     int current_arg, datafiles_count, slots, argparse_mode, current_earg;
     datafiles_count = argparse_mode = current_earg = 0;
-    char** datafiles = malloc(sizeof(char*) * 20); // A safe number
-    char** eargs = malloc(sizeof(char*) * 20); // Also a safe number
+    char** datafiles = malloc(sizeof(char*) * argc); // A safe number
+    char** eargs = malloc(sizeof(char*) * argc); // Also a safe number
     char* executable;
     for(current_arg = 1; current_arg < argc; current_arg++){
         if(argparse_mode == 0){
