@@ -1,5 +1,6 @@
 #include "hydramaster.h"
 
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -15,24 +16,29 @@
 void hydra_read_connection(int fd);
 
 void hydra_listen() {
-    struct sockaddr addr;
+    struct sockaddr_in addr;
     socklen_t addrlen;
     int fd, i;
     int listen_sock = hydra_get_highsock_d(NULL, "51432", AI_PASSIVE);
     listen(listen_sock, 20);
-    int is_child = 0;
     
-    while (!is_child) {
-        fd = accept(listen_sock, &addr, &addrlen);
-        syslog(LOG_INFO, "recieved connection");
-        
-        i = fork();
-        if (i == 0){
-            close(listen_sock);
-            is_child = 1;
-            hydra_read_connection(fd);
+    for (;;) {
+        fd = accept(listen_sock, (struct sockaddr*) &addr, &addrlen);
+        if (fd < 0) {
+            syslog(LOG_WARNING, "Error recieving connection: %d", errno);
+            break;
+        } else {
+            syslog(LOG_INFO, "recieved connection");
+            
+            i = fork();
+            if (i == 0){
+                close(listen_sock);
+                hydra_read_connection(fd);
+                break;
+            }
         }
     }
+    syslog(LOG_INFO, "Hydramd thread shutting down");
 }
 
 void hydra_read_connection(int fd) {
