@@ -119,8 +119,10 @@ int hydra_get_highsock_d(const char* host, const char* service, int flags) {
     }
 
     info = ret;
+    int j = 0;
 
     while (!bound && info) {
+        ++j;
         if (info->ai_family == AF_INET) {
             listen_sock = socket(AF_INET, SOCK_STREAM, 0);
             if (listen_sock < 0) {hydra_exit_error("Couldn't create IPv4 socket");}
@@ -129,7 +131,7 @@ int hydra_get_highsock_d(const char* host, const char* service, int flags) {
                 break;
             } else {
                 close(listen_sock);
-                syslog(LOG_DEBUG, "Attempted IPv4 bind failed, errno %d", errno);
+                syslog(LOG_DEBUG, "Attempted IPv4 bind failed, errno %d %d", errno, j);
             }
         }
     }
