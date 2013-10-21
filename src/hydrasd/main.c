@@ -47,7 +47,8 @@ int main(int argc, char **argv) {
     }
 
     while(1) {
-        syslog(LOG_INFO, "Load Average: %f\n", get_load_avg());
+        syslog(LOG_INFO, "Load Average: %f\n, Total RAM: %lu, Free RAM: %lu\n", 
+                get_load_avg(), get_total_ram(), get_free_ram());
         sleep(10);
     }
 }

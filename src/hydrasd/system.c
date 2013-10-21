@@ -11,11 +11,29 @@
 static double round_2(double);
 
 unsigned long get_free_ram(void) {
-    return 0.0;
+    struct sysinfo *info = malloc(sizeof(struct sysinfo));
+    unsigned long free_ram;
+
+    if(sysinfo(info) < 0) {
+        free(info);
+        return -1;
+    }
+    free_ram = info->freeram;
+    free(info);
+    return free_ram;
 }
 
 unsigned long get_total_ram(void) {
-    return 0.0;
+    struct sysinfo *info = malloc(sizeof(struct sysinfo));
+    unsigned long total_ram;
+
+    if(sysinfo(info) < 0) {
+        free(info);
+        return -1;
+    }
+    total_ram = info->totalram;
+    free(info);
+    return total_ram;
 }
 
 double get_load_avg(void) {
@@ -30,6 +48,7 @@ double get_load_avg(void) {
     load = info->loads[0];
     load_ret = load / pow(2, 16);
     load_ret = round_2(load_ret);
+    free(info);
     return load_ret;
 }
 
