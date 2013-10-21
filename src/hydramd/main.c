@@ -50,12 +50,10 @@ int main(int argc, char** argv) {
             case '?':
                 exit(1);
                 break;
-
         }
     }
 
     if (daemonize) {
-        printf("Daemonizing");
         hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
     }
 
