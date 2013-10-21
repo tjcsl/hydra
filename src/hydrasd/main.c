@@ -11,11 +11,13 @@
 
 #include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "hydraslave.h"
 #include "hydracommon.h"
+#include "system.h"
 
 void display_help(const char *);
 void sig_handler(int);
@@ -45,7 +47,8 @@ int main(int argc, char **argv) {
     }
 
     while(1) {
-        sleep(1);
+        syslog(LOG_INFO, "Load Average: %f\n", get_load_avg());
+        sleep(10);
     }
 }
 
