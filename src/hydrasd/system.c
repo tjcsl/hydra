@@ -10,6 +10,7 @@
 
 static double round_2(double);
 
+// Returns Value in Megabytes
 unsigned long get_free_ram(void) {
     struct sysinfo *info = malloc(sizeof(struct sysinfo));
     unsigned long free_ram;
@@ -18,11 +19,12 @@ unsigned long get_free_ram(void) {
         free(info);
         return -1;
     }
-    free_ram = info->freeram;
+    free_ram = info->freeram + info->bufferram;
     free(info);
-    return free_ram;
+    return free_ram >> 20;
 }
 
+// Returns value in Megabytes
 unsigned long get_total_ram(void) {
     struct sysinfo *info = malloc(sizeof(struct sysinfo));
     unsigned long total_ram;
@@ -33,9 +35,10 @@ unsigned long get_total_ram(void) {
     }
     total_ram = info->totalram;
     free(info);
-    return total_ram;
+    return total_ram >> 20;
 }
 
+// 1 min load average
 double get_load_avg(void) {
     struct sysinfo *info = malloc(sizeof(struct sysinfo));
     unsigned long load;
