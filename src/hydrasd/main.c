@@ -39,7 +39,10 @@ int main(int argc, char **argv) {
                 break;
         }
     }
-    hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
+    
+    if(daemonize) {
+        hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
+    }
 
     while(1) {
         sleep(1);
