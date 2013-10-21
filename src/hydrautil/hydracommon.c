@@ -73,6 +73,7 @@ void hydra_exit_error(const char* err) {
     syslog(LOG_CRIT, "%s", err);
 }
 
+//TODO:Make less bad
 int hydra_get_highsock_d(const char* host, const char* service, int flags) {
     struct addrinfo *ret, *info;
     struct addrinfo hints;
