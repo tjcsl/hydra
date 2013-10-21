@@ -89,24 +89,16 @@ int main(int argc, char* argv[]){
     }
     //freeaddrinfo(result);
     // Time for actual socket communication.
-    printf("Calculating sub_length\n");
     int sub_length = 8 + strlen((const char*)executable) + strlen((const char*)slots);
-    printf("Allocating submit %d\n", sub_length);
     char submit[sub_length];
-    printf("Zeroing submit\n");
     memset(&submit, 0, sub_length);
-    printf("Strcpy\n");
     strcpy(submit, "SUBMIT ");
-    printf("Strcat executable\n");
     strcat(submit, executable);
-    printf("Strcat ' '\n");
     strcat(submit, " ");
-    printf("Strcat slots\n");
     strcat(submit, slots);
-    printf("Writing to socket\n");
     write(sd, submit, sub_length);
+    printf("Executable submitted; getting jobid.\n");
     int jobid;
-    printf("Getting jobid\n");
     char* submit_resp = fscanf(sd, "JOBID %d", &jobid);
 
     // We don't need this any more!
