@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <string.h>
 #include "hydramaster.h"
+#include "hydracommon.h"
 
 //TODO:Make this stuff load from config file
 #define PIDFILE "./hydramd.pid"

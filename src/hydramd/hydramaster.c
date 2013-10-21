@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include "hydracommon.h"
 #include "hydranet.h"
+#include <stdio.h>
 
 void hydra_read_connection(int fd);
 
@@ -32,10 +33,9 @@ void hydra_listen() {
 }
 
 void hydra_read_connection(int fd) {
-    char* buff;
+    char recv[256];
     for (;;) {
-        buff = hydra_read_packet(fd);
-        syslog(LOG_INFO, "%256s", buff);
-        free(buff);
+        read(fd, recv, 256);
+        syslog(LOG_INFO, "%s", recv);
     }
 }
