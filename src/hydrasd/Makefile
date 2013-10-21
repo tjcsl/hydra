@@ -1,4 +1,6 @@
-$(OUTDIR)/hydrasd: main.c hydraslave.c
-	gcc $(CFLAGS) $^ -o $@
+SRC=main.c hydraslave.c
 
-main.c hydraslave.c: hydraslave.h
+$(OUTDIR)/hydrasd: $(SRC) $(OUTDIR)/libhydrautil.a 
+	gcc $(CFLAGS) $(INC) $(SRC) -o $@ -L$(OUTDIR) -lhydrautil
+
+main.c hydramaster: hydraslave.h

@@ -5,6 +5,4 @@
 
 #define SLAVE_NAME "hydrasd"
 
-void hydra_exit_error(const char *);
-
 #endif

@@ -5,8 +5,3 @@
 #include <stdlib.h>
 
 #include "hydraslave.h"
-
-void hydra_exit_error(const char *err_msg) {
-    syslog(LOG_CRIT, "%s", err_msg);
-    exit(1);
-}
