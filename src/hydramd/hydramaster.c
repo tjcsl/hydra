@@ -22,7 +22,7 @@ void hydra_listen() {
     listen(listen_sock, 20);
     int is_child = 0;
     
-    for (!is_child) {
+    while (!is_child) {
         fd = accept(listen_sock, &addr, &addrlen);
         syslog(LOG_INFO, "recieved connection");
         
