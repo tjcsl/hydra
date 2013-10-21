@@ -1,0 +1,2 @@
+#List of nodes we will allow to connect
+whitelist=host1:host2:host3

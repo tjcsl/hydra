@@ -15,7 +15,7 @@
 #define PIDFILE "./hydramd.pid"
 
 void handlesignal(int sig) {
-    syslog(LOG_INFO, "Recieved signal %d", sig);
+    syslog(LOG_INFO, "Received signal %d", sig);
     switch(sig) {
         case SIGTERM:
             syslog(LOG_INFO, "Shutting down hydramd");
