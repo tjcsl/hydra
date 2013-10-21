@@ -2,6 +2,7 @@
 //Handels daemonization and then hands control off to the stuff in
 //hydramaster.c
 
+#include <ctype.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -24,8 +25,37 @@ void handlesignal(int sig) {
     }
 }
 
-int main(int argc, const char** argv) {
-    hydra_daemonize("hydramd", "/tmp", "hydramd.lock", handlesignal);
+int main(int argc, char** argv) {
+    int daemonize = 1;
+    char *config_file = "./conf/hydramd.conf";
+    char *run_location = "/tmp";
+    char *lockfile_name = "hydramd.lock";
+    int c, index;
+
+    while ((c = getopt(argc, argv, "Xc:r:l:")) != 0) {
+        switch (c) {
+            case 'X':
+                daemonize = 0;
+                break;
+            case 'c':
+                config_file = optarg;
+                break;
+            case 'r':
+                run_location = optarg;
+                break;
+            case 'l':
+                lockfile_name = optarg;
+                break;
+            case '?':
+                exit(1);
+                break;
+
+        }
+    }
+
+    if (daemonize) {
+        hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
+    }
 
     hydra_listen();
 
