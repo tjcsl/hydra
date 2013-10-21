@@ -6,7 +6,7 @@ all: hydramd hydrarun hydrasd
 hydramd hydrarun hydrasd: $(OUTDIR)/libhydrautil.a
 	@$(MAKE) -C $@
 
-$(OUTDIR)/libhydrautil.a:
+$(OUTDIR)/libhydrautil.a: hydrautil/*
 	@$(MAKE) -C hydrautil
 
 .PHONY: hydramd hydrarun hydrasd
