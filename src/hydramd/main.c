@@ -33,7 +33,8 @@ int main(int argc, char** argv) {
     char *lockfile_name = "hydramd.lock";
     int c, index;
 
-    while ((c = getopt(argc, argv, "Xc:r:l:")) != 0) {
+    while ((c = getopt(argc, argv, "Xc:r:l:")) != -1) {
+        printf("Magic\n");
         switch (c) {
             case 'X':
                 daemonize = 0;
@@ -55,6 +56,7 @@ int main(int argc, char** argv) {
     }
 
     if (daemonize) {
+        printf("Daemonizing");
         hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
     }
 
