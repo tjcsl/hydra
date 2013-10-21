@@ -15,6 +15,7 @@
 #define PIDFILE "./hydramd.pid"
 
 void handlesignal(int sig) {
+    syslog(LOG_INFO, "Recieved signal %d", sig);
     switch(sig) {
         case SIGTERM:
             syslog(LOG_INFO, "Shutting down hydramd");
@@ -24,7 +25,7 @@ void handlesignal(int sig) {
 }
 
 int main(int argc, const char** argv) {
-    hydra_daemonize("hydramd", handlesignal);
+    hydra_daemonize("hydramd", "/tmp", "hydramd.lock", handlesignal);
 
     hydra_listen();
 
