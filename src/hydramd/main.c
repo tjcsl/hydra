@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
     int c, index;
 
     while ((c = getopt(argc, argv, "Xc:r:l:")) != -1) {
-        printf("Magic\n");
         switch (c) {
             case 'X':
                 daemonize = 0;
