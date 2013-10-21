@@ -77,7 +77,6 @@ int main(int argc, char* argv[]){
         fprintf(stderr, "Couldn't getaddrinfo, exiting.\n");
         return 2;
     }
-    //freeaddrinfo(&hints);
     int sd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if(sd == -1){
         fprintf(stderr, "Couldn't open socket, exiting.\n");
@@ -87,7 +86,7 @@ int main(int argc, char* argv[]){
         fprintf(stderr, "Couldn't connect to socket, exiting. (Errno %d)\n", errno);
         return 2;
     }
-    //freeaddrinfo(result);
+    freeaddrinfo(result);
     // Time for actual socket communication.
     int sub_length = 8 + strlen((const char*)executable) + strlen((const char*)slots);
     char submit[sub_length];
@@ -98,8 +97,8 @@ int main(int argc, char* argv[]){
     strcat(submit, slots);
     write(sd, submit, sub_length);
     printf("Executable submitted; getting jobid.\n");
-    int jobid;
-    char* submit_resp = fscanf(sd, "JOBID %d", &jobid);
+    //int jobid;
+    //char* submit_resp = fscanf(sd, "JOBID %d", &jobid);
 
     // We don't need this any more!
     close(sd);
