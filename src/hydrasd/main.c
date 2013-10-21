@@ -17,14 +17,37 @@
 #include "hydraslave.h"
 #include "hydracommon.h"
 
+void display_help(const char *);
 void sig_handler(int);
 
 int main(int argc, char **argv) {
+    int daemonize = 1;
+    int c;
+    char *prgname = argv[0];
+    while((c = getopt(argc, argv, "Xh")) != -1) {
+        switch(c) {
+            case 'X':
+                daemonize = 0;
+                break;
+            case 'h':
+                display_help(prgname);
+                exit(0);
+                break;
+            case '?':
+                display_help(prgname);
+                exit(1);
+                break;
+        }
+    }
     hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
 
     while(1) {
         sleep(1);
     }
+}
+
+void display_help(const char *prgname) {
+    printf("usage: %s [-hX]", prgname);
 }
 
 void sig_handler(int signal) {
