@@ -55,7 +55,7 @@ void hydra_read_connection(int fd) {
         pt = hydra_get_next_packettype(fd);
         switch(pt) {
             case HYDRA_PACKET_SUBMIT:
-                hydra_read_SUBMIT(fd, &exename, &exenamelen, &slots);
+                hydra_read_SUBMIT(fd, (void**)&exename, &exenamelen, &slots);
                 syslog(LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
                 break;
             default:
