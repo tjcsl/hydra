@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     if(daemonize) {
         hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
     }
-    sock = hydra_get_highsock_d("localhost", "1997", 0);
+    sock = hydra_get_highsock("localhost", "1997", 0);
     while(1) {
         sleep(10);
     }
