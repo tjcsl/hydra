@@ -109,5 +109,6 @@ int hydra_get_highsock_d(const char* node, const char* service, int flags) {
         freeaddrinfo(info);
         return -2;
     }
+    freeaddrinfo(info);
     return sock;
 }
