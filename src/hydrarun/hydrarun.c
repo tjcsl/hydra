@@ -88,8 +88,8 @@ int main(int argc, char* argv[]){
     }
     freeaddrinfo(result);
     // Time for actual socket communication.
-    int jobid;
-    hydra_write_SUBMIT(sd, executable, strlen(executable), slots);
+    uint32_t jobid;
+    hydra_write_SUBMIT(sd, executable, strlen(executable), atoi(slots));
     hydra_read_JOBOK(sd, &jobid);
     printf("Jobid: %d\n", jobid);
     //char* submit_resp = fscanf(sd, "JOBID %d", &jobid);
