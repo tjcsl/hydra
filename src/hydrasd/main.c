@@ -17,6 +17,7 @@
 
 #include "hydraslave.h"
 #include "hydracommon.h"
+#include "network.h"
 #include "system.h"
 
 void display_help(const char *);
@@ -25,6 +26,7 @@ void sig_handler(int);
 int main(int argc, char **argv) {
     int daemonize = 1;
     int c;
+    int sock;
     char *prgname = argv[0];
     while((c = getopt(argc, argv, "Xh")) != -1) {
         switch(c) {
@@ -45,12 +47,11 @@ int main(int argc, char **argv) {
     if(daemonize) {
         hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
     }
-
+    sock = gethydrasocket("localhost", "1997", 0);
     while(1) {
-        syslog(LOG_INFO, "Load Average: %f\n, Total RAM: %lu, Free RAM: %lu\n", 
-                get_load_avg(), get_total_ram(), get_free_ram());
         sleep(10);
     }
+    return 0;
 }
 
 void display_help(const char *prgname) {
