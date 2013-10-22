@@ -1,0 +1,26 @@
+#Packets are defined by
+#NAME arg1 arg2 arg3
+#where args are in the format
+#type:name
+#where type can be u32,u16 or data
+#byte generates functions that take 8 bit integers (datatype char)
+#u32 generates functions that take unsigned 32 bit integers
+#u16 generates functions that take unsigned 16 bit integerss
+#data generates functions that take (void *argname_data, int argname_len)
+#Special line for protocol version
+::SERIAL:1
+CHALLENGE       u32:challenge_id
+CHRESPONSE      u32:challenge_resp
+CHOK            byte:ok
+PING
+HEARTBEAT       data:hostname u16:slots u32:mb_ram u32:mb_free u32:load_avg
+SUBMIT          u32:jobid data:exe_name u16:slots u16:numfiles
+EXEC            u32:jobid #Not done
+JOBOK           u32:jobid #Not done
+JOBDATA         u32:jobid #Not done
+FILEDATA        u32:jobid #Not done
+FILEACK         u32:jobid #not done
+JOBDONE         u32:jobid #not done
+JOBDONEACK      u32:jobid #not done
+RUN             u32:jobid #not done
+RUNACK          u32:jobid #not done
