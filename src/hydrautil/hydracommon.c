@@ -71,6 +71,7 @@ void hydra_daemonize(const char* progname, const char* running_directory
 
 void hydra_exit_error(const char* err) {
     syslog(LOG_CRIT, "%s", err);
+    exit(1);
 }
 
 //TODO:Make less bad
@@ -104,7 +105,7 @@ int hydra_get_highsock_d(const char* host, const char* service, int flags) {
                 close(listen_sock);
                 syslog(LOG_DEBUG, "Attempted IPv6 bind failed, errno %d", errno);
                 if (errno = EADDRINUSE) {
-                    hydra_exit_error("Couldn't bind IPv4 address: already in use");
+                    hydra_exit_error("Couldn't bind IPv6 address: already in use");
                 }
             }
         }

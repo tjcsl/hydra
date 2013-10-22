@@ -43,16 +43,15 @@ void hydra_listen() {
 }
 
 void hydra_read_connection(int fd) {
-    char recv[256];
-    memset (recv, 0, 256);
     int pt, exenamelen;
     uint16_t slots;
     char* exename;
     for (;;) {
-        if (read(fd, recv, 1) <= 0) {
+        pt = hydra_get_next_packettype(fd);
+        if (pt != 0) {
+            syslog(LOG_WARNING, "Read failed %d", errno);
             return;
         }
-        pt = hydra_get_next_packettype(fd);
         switch(pt) {
             case HYDRA_PACKET_SUBMIT:
                 hydra_read_SUBMIT(fd, (void**)&exename, &exenamelen, &slots);
@@ -61,6 +60,5 @@ void hydra_read_connection(int fd) {
             default:
                 syslog(LOG_INFO, "Packet type: %d", pt);
         }
-        syslog(LOG_INFO, "%s", recv);
     }
 }
