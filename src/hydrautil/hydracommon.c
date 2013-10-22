@@ -86,7 +86,7 @@ int hydra_get_highsock(const char* node, const char* service, int flags) {
     hints.ai_flags = flags;
     status = getaddrinfo(node, service, &hints, &info);
     if(status < 0) {
-        return -1;
+        return status;
     }
 
     for(curr = info; curr != NULL; curr = curr->ai_next) {
