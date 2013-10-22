@@ -142,7 +142,7 @@ def gen_read_u16(name):
 def gen_write_u16(name):
     c.write("\n\
     u16 = %s; \n\
-    u16 = htonl(u16);\n\
+    u16 = htons(u16);\n\
     if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n"
     % (name))
 

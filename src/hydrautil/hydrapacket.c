@@ -137,8 +137,16 @@ int hydra_write_SUBMIT(int fd,const void*  exe_name_data,int exe_name_len,uint16
     if ((i = write(fd, exe_name_data, exe_name_len)) != exe_name_len) {return i;}
 
     u16 = slots; 
-    u16 = htonl(u16);
+    u16 = htons(u16);
     if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
+
+    u16 = numfiles; 
+    u16 = htons(u16);
+    if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
+
+    u32 = jobid; 
+    u32 = htonl(u32);
+    if ((i = write(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
     return 0;
 }
 int hydra_read_RUNACK(int fd,uint32_t *jobid) {
@@ -223,7 +231,7 @@ int hydra_write_HEARTBEAT(int fd,uint16_t  slots,const void*  hostname_data,int 
     if (write(fd, &type, 1) != 1) {return -1;}
 
     u16 = slots; 
-    u16 = htonl(u16);
+    u16 = htons(u16);
     if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
 
     i = htonl(hostname_len); 
