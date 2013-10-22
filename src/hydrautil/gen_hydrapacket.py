@@ -103,7 +103,7 @@ def gen_read_data(dname):
     } \n\
     *%s_len = ntohl(*%s_len); \n\
     *%s_data = malloc(*%s_len); \n\
-    if ((i = read(fd, %s_data, *%s_len)) != *%s_len) { \n\
+    if ((i = read(fd, *%s_data, *%s_len)) != *%s_len) { \n\
         return i; \n\
     }\n" % (dname, dname, dname, dname, dname, dname, dname, dname))
 
