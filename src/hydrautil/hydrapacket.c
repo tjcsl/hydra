@@ -111,7 +111,7 @@ int hydra_write_FILEACK(int fd,uint32_t  jobid) {
     if ((i = write(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
     return 0;
 }
-int hydra_read_SUBMIT(int fd,const void** exe_name_data,int *exe_name_len,uint16_t *slots,uint16_t *numfiles) {
+int hydra_read_SUBMIT(int fd,const void** exe_name_data,int *exe_name_len,uint16_t *slots) {
     int i; uint16_t u16; uint32_t u32;
  
     if ((i = read(fd, exe_name_len, 4)) < 4) { 
@@ -125,12 +125,9 @@ int hydra_read_SUBMIT(int fd,const void** exe_name_data,int *exe_name_len,uint16
 
     if ((i = read(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
     *slots = u16;
-
-    if ((i = read(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
-    *numfiles = u16;
    return 0;
 }
-int hydra_write_SUBMIT(int fd,const void*  exe_name_data,int exe_name_len,uint16_t  slots,uint16_t  numfiles) {
+int hydra_write_SUBMIT(int fd,const void*  exe_name_data,int exe_name_len,uint16_t  slots) {
     int i; uint16_t u16; uint32_t u32; char type;
     type = 5;
     if (write(fd, &type, 1) != 1) {return -1;}
@@ -140,10 +137,6 @@ int hydra_write_SUBMIT(int fd,const void*  exe_name_data,int exe_name_len,uint16
     if ((i = write(fd, exe_name_data, exe_name_len)) != exe_name_len) {return i;}
 
     u16 = slots; 
-    u16 = htonl(u16);
-    if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
-
-    u16 = numfiles; 
     u16 = htonl(u16);
     if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
     return 0;
