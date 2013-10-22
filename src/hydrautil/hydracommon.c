@@ -96,7 +96,7 @@ int hydra_get_highsock_d(const char* node, const char* service, int flags) {
         if(sock < 0) {
             continue;
         }
-        status = connect(sock, curr->ai_addr, curr->ai_addrlen);
+        status = bind(sock, curr->ai_addr, curr->ai_addrlen);
         if(status < 0) {
             close(sock);
             continue;
