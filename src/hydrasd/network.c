@@ -17,14 +17,22 @@ int gethydrasocket(const char *node, const char *service, int flags) {
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = flags;
+    // hints.ai_flags = flags;
+    hints.ai_flags = AI_PASSIVE;
     status = getaddrinfo(node, service, &hints, &info);
     if(status < 0) {
         return -1;
     }
-    
+    puts("IP Family Test:");
     for(curr = info; curr != NULL; curr = curr->ai_next) {
-        sock = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+        if(curr->ai_family == AF_INET6) {
+            puts("IPV6!");
+        } else {
+            puts("IPV4!");
+        }
+    }
+    for(curr = info; curr != NULL; curr = curr->ai_next) {
+        sock = socket(curr->ai_family, curr->ai_socktype, curr->ai_protocol);
         if(sock < 0) {
             continue;
         }
