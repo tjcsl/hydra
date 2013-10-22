@@ -75,7 +75,7 @@ void hydra_exit_error(const char* err) {
 }
 
 //TODO:Make less bad
-int hydra_get_highsock_d(const char* host, const char* service, int flags) {
+int hydra_get_highsock_d(const char* node, const char* service, int flags) {
     int status;
     int sock;
     struct addrinfo hints;

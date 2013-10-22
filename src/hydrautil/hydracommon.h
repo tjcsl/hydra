@@ -8,6 +8,6 @@ void hydra_exit_error(const char* err);
 
 //Gets an IPv6 socket if we can, IPv4 otherwise.
 //Logs to syslog, so should only be used in daemons
-int hydra_get_highsock_d(const char* host, const char* service, int flags);
+int hydra_get_highsock_d(const char* node, const char* service, int flags);
 
 #endif
