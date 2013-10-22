@@ -77,7 +77,7 @@ int main(int argc, char* argv[]){
     }
     // Time for actual socket communication.
     uint32_t jobid;
-    hydra_write_SUBMIT(sd, executable, strlen(executable), atoi(slots));
+    hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots));
     hydra_read_JOBOK(sd, &jobid);
     printf("Jobid: %d\n", jobid);
 
