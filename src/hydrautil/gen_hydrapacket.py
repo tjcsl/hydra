@@ -173,7 +173,9 @@ for ptype in packettypes:
     c.write("   return 0;\n")
     c.write("}\n")
     c.write("int hydra_write_%s(%s) {\n" % (ptype, packet_write_astrings[ptype]))
-    c.write("    int i; uint16_t u16; uint32_t u32;\n");
+    c.write("    int i; uint16_t u16; uint32_t u32; char type;\n");
+    c.write("    type = %s;\n" % packet_ids[ptype])
+    c.write("    if (write(fd, &type, 1) != 1) {return -1;}\n")
     for arg in packet_args:
         print ("Generating argument", arg, "type", packet_args[arg])
         if packet_args[arg] in writes:

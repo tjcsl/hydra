@@ -12,7 +12,9 @@ int hydra_read_RUN(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_RUN(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 13;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -27,7 +29,9 @@ int hydra_read_JOBDONEACK(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_JOBDONEACK(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 12;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -42,7 +46,9 @@ int hydra_read_EXEC(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_EXEC(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 6;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -57,7 +63,9 @@ int hydra_read_CHALLENGE(int fd,uint32_t *challenge_id) {
    return 0;
 }
 int hydra_write_CHALLENGE(int fd,uint32_t  challenge_id) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 0;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = challenge_id; 
     u32 = htonl(u32);
@@ -70,7 +78,9 @@ int hydra_read_CHOK(int fd,char *ok) {
    return 0;
 }
 int hydra_write_CHOK(int fd,char  ok) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 2;
+    if (write(fd, &type, 1) != 1) {return -1;}
     if ((i = write(fd, &ok, 1)) != 1) {return i;}
     return 0;
 }
@@ -79,7 +89,9 @@ int hydra_read_PING(int fd) {
    return 0;
 }
 int hydra_write_PING(int fd) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 3;
+    if (write(fd, &type, 1) != 1) {return -1;}
     return 0;
 }
 int hydra_read_FILEACK(int fd,uint32_t *jobid) {
@@ -90,7 +102,9 @@ int hydra_read_FILEACK(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_FILEACK(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 10;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -120,7 +134,9 @@ int hydra_read_SUBMIT(int fd,const void** exe_name_data,int *exe_name_len,uint16
    return 0;
 }
 int hydra_write_SUBMIT(int fd,const void*  exe_name_data,int exe_name_len,uint16_t  slots,uint16_t  numfiles,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 5;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     i = htonl(exe_name_len); 
     if ((i = write(fd, &i, 4)) != 4) {return i;} 
@@ -147,7 +163,9 @@ int hydra_read_RUNACK(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_RUNACK(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 14;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -162,7 +180,9 @@ int hydra_read_JOBDONE(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_JOBDONE(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 11;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -177,7 +197,9 @@ int hydra_read_JOBDATA(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_JOBDATA(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 8;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -210,7 +232,9 @@ int hydra_read_HEARTBEAT(int fd,uint16_t *slots,const void** hostname_data,int *
    return 0;
 }
 int hydra_write_HEARTBEAT(int fd,uint16_t  slots,const void*  hostname_data,int hostname_len,uint32_t  mb_free,uint32_t  mb_ram,uint32_t  load_avg) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 4;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u16 = slots; 
     u16 = htonl(u16);
@@ -241,7 +265,9 @@ int hydra_read_CHRESPONSE(int fd,uint32_t *challenge_resp) {
    return 0;
 }
 int hydra_write_CHRESPONSE(int fd,uint32_t  challenge_resp) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 1;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = challenge_resp; 
     u32 = htonl(u32);
@@ -256,7 +282,9 @@ int hydra_read_JOBOK(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_JOBOK(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 7;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
@@ -271,7 +299,9 @@ int hydra_read_FILEDATA(int fd,uint32_t *jobid) {
    return 0;
 }
 int hydra_write_FILEDATA(int fd,uint32_t  jobid) {
-    int i; uint16_t u16; uint32_t u32;
+    int i; uint16_t u16; uint32_t u32; char type;
+    type = 9;
+    if (write(fd, &type, 1) != 1) {return -1;}
 
     u32 = jobid; 
     u32 = htonl(u32);
