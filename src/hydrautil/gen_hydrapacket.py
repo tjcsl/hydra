@@ -95,24 +95,38 @@ h.write("#endif")
 for inc in includes:
     c.write("#include <%s>\n" % inc)
 c.write("#include \"hydrapacket.h\"\n")
+#write utility functions
+c.write("\
+int read_data(int fd, int *len, void **data) {\n\
+    int i;\n\
+    if ((i = read(fd, len, 4)) < 4) {\n\
+        return i;\n\
+    }\n\
+    *len = ntohl(*len);\n\
+    *data = malloc(*len);\n\
+    if ((i = read(fd, *data, *len)) != len) {\n\
+        return i;\n\
+    }\n\
+}\n\
+\n\
+int write_data(int fd, int len, void *data) {\n\
+    int i;\n\
+    uint32_t u32;\n\
+    u32 = len;\n\
+    u32 = htonl(u32);\n\
+    if ((i = write(fd, &u32, 4)) != 4) {return i;} \n\
+    if ((i = write(fd, data, len)) != len) {return i;}\n\
+}\n\
+")
 
 def gen_read_data(dname):
-    c.write(" \n\
-    if ((i = read(fd, %s_len, 4)) < 4) { \n\
-        return i; \n\
-    } \n\
-    *%s_len = ntohl(*%s_len); \n\
-    *%s_data = malloc(*%s_len); \n\
-    if ((i = read(fd, *%s_data, *%s_len)) != *%s_len) { \n\
-        return i; \n\
-    }\n" % (dname, dname, dname, dname, dname, dname, dname, dname))
+    c.write("\n\
+    if ((i = read_data(fd, %s_len, %s_data)) <= 0) {return i;}\n" %(dname, dname))
 
 def gen_write_data(dname):
     c.write("\n\
-    i = htonl(%s_len); \n\
-    if ((i = write(fd, &i, 4)) != 4) {return i;} \n\
-    if ((i = write(fd, %s_data, %s_len)) != %s_len) {return i;}\n" % 
-    (dname, dname, dname, dname))
+    write_data(fd, %s_len, %s_data);" %
+    (dname, dname))
 
 def gen_read_char(name):
     c.write("    if ((i = read(fd, %s, 1)) != 1) {return i;}\n" % (name))
@@ -135,7 +149,7 @@ def gen_write_u32(name):
 
 def gen_read_u16(name):
     c.write("\n\
-    if ((i = read(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n\
+    if ((i = read(fd, &u16, sizeof(uint16_t))) != sizeof(uint16_t)) {return i;}\n\
     *%s = ntohl(u16);\n"
     % (name))
 
@@ -143,7 +157,7 @@ def gen_write_u16(name):
     c.write("\n\
     u16 = %s; \n\
     u16 = htons(u16);\n\
-    if ((i = write(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n"
+    if ((i = write(fd, &u16, sizeof(uint16_t))) != sizeof(uint16_t)) {return i;}\n"
     % (name))
 
 writes = {
