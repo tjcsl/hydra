@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include "hydracommon.h"
 #include "hydranet.h"
+#include "hydrapacket.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -44,9 +45,21 @@ void hydra_listen() {
 void hydra_read_connection(int fd) {
     char recv[256];
     memset (recv, 0, 256);
+    int pt, exenamelen;
+    uint16_t slots;
+    char* exename;
     for (;;) {
         if (read(fd, recv, 1) <= 0) {
             return;
+        }
+        pt = hydra_get_next_packettype(fd);
+        switch(pt) {
+            case HYDRA_PACKET_SUBMIT:
+                hydra_read_SUBMIT(fd, &exename, &exenamelen, &slots);
+                syslog(LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
+                break;
+            default:
+                syslog(LOG_INFO, "Packet type: %d", pt);
         }
         syslog(LOG_INFO, "%s", recv);
     }
