@@ -88,15 +88,6 @@ int main(int argc, char* argv[]){
     }
     freeaddrinfo(result);
     // Time for actual socket communication.
-    //int sub_length = 8 + strlen((const char*)executable) + strlen((const char*)slots);
-    //char submit[sub_length];
-    //memset(&submit, 0, sub_length);
-    //strcpy(submit, "SUBMIT ");
-    //strcat(submit, executable);
-    //strcat(submit, " ");
-    //strcat(submit, slots);
-    //write(sd, submit, sub_length);
-    //printf("Executable submitted; getting jobid.\n");
     int jobid;
     hydra_write_SUBMIT(sd, executable, strlen(executable), slots);
     hydra_read_JOBOK(sd, &jobid);
