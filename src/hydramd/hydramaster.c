@@ -21,7 +21,12 @@ void hydra_listen() {
     socklen_t addrlen;
     int fd, i;
     int listen_sock = hydra_get_highsock_d(NULL, "51432", AI_PASSIVE);
-    listen(listen_sock, 20);
+    if (listen_sock < 0) {
+        hydra_exit_error("Couldn't get a socket to listen with");
+    }
+    if (listen(listen_sock, 20) < 0) {
+        hydra_exit_error("No way to put our socket into listen mode");
+    }
     
     for (;;) {
         fd = accept(listen_sock, (struct sockaddr*) &addr, &addrlen);

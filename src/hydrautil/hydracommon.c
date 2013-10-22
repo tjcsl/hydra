@@ -76,77 +76,36 @@ void hydra_exit_error(const char* err) {
 
 //TODO:Make less bad
 int hydra_get_highsock_d(const char* host, const char* service, int flags) {
-    struct addrinfo *ret, *info;
+    int status;
+    int sock;
     struct addrinfo hints;
-    int i;
-    int listen_sock, bound;
-    
-    memset((void*)&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET6;
+    struct addrinfo *info, *curr;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = flags; 
-    i = getaddrinfo(host, service, &hints, &ret);
-    if (i != 0) {
-        hydra_exit_error(gai_strerror(i));
+    // hints.ai_flags = flags;
+    hints.ai_flags = AI_PASSIVE;
+    status = getaddrinfo(node, service, &hints, &info);
+    if(status < 0) {
+        return -1;
     }
 
-    bound = 0;
-    info = ret;
-
-    while (!(bound & BOUND6) && info) {
-        syslog(LOG_DEBUG, "Trying family %d", info->ai_family);
-        if (info->ai_family == AF_INET6) {
-            listen_sock = socket(AF_INET6, SOCK_STREAM, 0);
-            if (listen_sock < 0) {hydra_exit_error("Couldn't create IPv6 socket");}
-            if (bind(listen_sock, info->ai_addr, info->ai_addrlen) == 0) {
-                bound |= BOUND6;
-                break; //We got this
-            } else {
-                close(listen_sock);
-                syslog(LOG_DEBUG, "Attempted IPv6 bind failed, errno %d", errno);
-                if (errno = EADDRINUSE) {
-                    hydra_exit_error("Couldn't bind IPv6 address: already in use");
-                }
-            }
+    for(curr = info; curr != NULL; curr = curr->ai_next) {
+        sock = socket(curr->ai_family, curr->ai_socktype, curr->ai_protocol);
+        if(sock < 0) {
+            continue;
         }
-        info = info->ai_next;
-    }
-
-    freeaddrinfo(ret);
-
-    memset((void*)&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = flags; 
-    i = getaddrinfo(host, service, &hints, &ret);
-    if (i != 0) {
-        hydra_exit_error(gai_strerror(i));
-    }
-
-    info = ret;
-
-    while (!bound && info) {
-        if (info->ai_family == AF_INET) {
-            listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-            if (listen_sock < 0) {hydra_exit_error("Couldn't create IPv4 socket");}
-            if (bind(listen_sock, info->ai_addr, info->ai_addrlen) == 0) {
-                bound |= BOUND4;
-                break;
-            } else {
-                close(listen_sock);
-                syslog(LOG_DEBUG, "Attempted IPv4 bind failed, errno %d", errno);
-                if (errno == EADDRINUSE) {
-                    hydra_exit_error("Couldn't bind IPv4 address: already in use");
-                }
-            }
+        status = connect(sock, curr->ai_addr, curr->ai_addrlen);
+        if(status < 0) {
+            close(sock);
+            continue;
         }
+        break;
     }
-
-    freeaddrinfo(ret);
-    
-    if (!bound) {
-        hydra_exit_error("Failed to bind socket, exiting");
+    if(curr == NULL) {
+        freeaddrinfo(info);
+        return -2;
     }
-
-    return listen_sock;
+    return sock;
 }
