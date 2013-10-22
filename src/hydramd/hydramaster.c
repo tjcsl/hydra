@@ -50,7 +50,7 @@ void hydra_listen() {
 
 void hydra_read_connection(int fd) {
     int pt, exenamelen;
-    uint32_t slots;
+    uint16_t slots;
     char* exename;
     for (;;) {
         pt = hydra_get_next_packettype(fd);
