@@ -278,3 +278,10 @@ int hydra_write_FILEDATA(int fd,uint32_t  jobid) {
     if ((i = write(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}
     return 0;
 }
+int hydra_get_next_packettype(int fd) {
+    char c;
+    if (read(fd, &c, 1) != 1) {
+        return -1;
+    }
+    return c;
+}

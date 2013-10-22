@@ -182,3 +182,12 @@ for ptype in packettypes:
             print("Warning: no write function for argtype", packet_args[arg])
     c.write("    return 0;\n")
     c.write("}\n")
+
+c.write("\
+int hydra_get_next_packettype(int fd) {\n\
+    char c;\n\
+    if (read(fd, &c, 1) != 1) {\n\
+        return -1;\n\
+    }\n\
+    return c;\n\
+}")
