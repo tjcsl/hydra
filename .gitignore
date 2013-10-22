@@ -4,7 +4,7 @@
 .ycm_extra_conf.py*
 #build stuffs
 build/
-src/hydrautil/hydrpacket.h
-src/hydrautil/hydrpacket.c
+src/hydrautil/hydrapacket.h
+src/hydrautil/hydrapacket.c
 #dev files
 hydra.lock
