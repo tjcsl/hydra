@@ -49,7 +49,7 @@ for line in inf:
         elif packet_args[arg] == 'byte':
             paramtype = "char"
         elif packet_args[arg] == 'data':
-            argstring += "const void*  %s_data,int %s_len," % (arg, arg)
+            argstring += "void*  %s_data,int %s_len," % (arg, arg)
             continue
         argstring += paramtype + "  " + arg + ","
     argstring = argstring[:-1]
@@ -64,7 +64,7 @@ for line in inf:
         elif packet_args[arg] == 'byte':
             paramtype = "char"
         elif packet_args[arg] == 'data':
-            argstring += "const void** %s_data,int *%s_len," % (arg, arg)
+            argstring += "void** %s_data,int *%s_len," % (arg, arg)
             continue
         argstring += paramtype + " *" + arg + ","
     argstring = argstring[:-1]
