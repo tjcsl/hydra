@@ -3,10 +3,12 @@
 //hydramaster.c
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/syslog.h>
 #include <signal.h>
 #include <string.h>
@@ -29,9 +31,10 @@ void handlesignal(int sig) {
 int main(int argc, char** argv) {
     int daemonize = 1;
     char *config_file = "./conf/hydramd.conf";
-    char *run_location = "/tmp";
+    char *run_location = "/tmp/hydramd";
     char *lockfile_name = "hydramd.lock";
     int c, index;
+    int i;
 
     while ((c = getopt(argc, argv, "Xc:r:l:")) != -1) {
         switch (c) {
@@ -52,6 +55,15 @@ int main(int argc, char** argv) {
                 break;
         }
     }
+    
+    i = mkdir(run_location, 0444);
+    if (i == -1) {
+        if (errno != EEXIST) {
+            printf("Couldn't create running directory %s, error %d", run_location, errno);
+        }
+        //XXX:Handle run_location being a file
+    }
+
 
     if (daemonize) {
         hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
