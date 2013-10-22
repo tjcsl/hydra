@@ -74,7 +74,6 @@ void hydra_exit_error(const char* err) {
     exit(1);
 }
 
-//TODO:Make less bad
 int hydra_get_highsock_d(const char* node, const char* service, int flags) {
     int status;
     int sock;
@@ -84,8 +83,7 @@ int hydra_get_highsock_d(const char* node, const char* service, int flags) {
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    // hints.ai_flags = flags;
-    hints.ai_flags = AI_PASSIVE;
+    hints.ai_flags = flags;
     status = getaddrinfo(node, service, &hints, &info);
     if(status < 0) {
         return -1;
@@ -96,7 +94,11 @@ int hydra_get_highsock_d(const char* node, const char* service, int flags) {
         if(sock < 0) {
             continue;
         }
-        status = bind(sock, curr->ai_addr, curr->ai_addrlen);
+        if((hints.ai_flags & AI_PASSIVE)) {
+            status = bind(sock, curr->ai_addr, curr->ai_addrlen);
+        } else {
+            status = connect(sock, curr->ai_addr, curr->ai_addrlen);
+        }
         if(status < 0) {
             close(sock);
             continue;
