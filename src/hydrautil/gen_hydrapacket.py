@@ -123,7 +123,7 @@ def gen_write_char(name):
 def gen_read_u32(name):
     c.write("\n\
     if ((i = read(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n\
-    *%s = u32;\n"
+    *%s = ntohl(u32);\n"
     % (name))
 
 def gen_write_u32(name):
@@ -136,7 +136,7 @@ def gen_write_u32(name):
 def gen_read_u16(name):
     c.write("\n\
     if ((i = read(fd, &u16, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n\
-    *%s = u16;\n"
+    *%s = ntohl(u16);\n"
     % (name))
 
 def gen_write_u16(name):
