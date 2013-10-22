@@ -48,7 +48,7 @@ void hydra_read_connection(int fd) {
     char* exename;
     for (;;) {
         pt = hydra_get_next_packettype(fd);
-        if (pt != 0) {
+        if (pt < 0) {
             syslog(LOG_WARNING, "Read failed %d", errno);
             return;
         }
