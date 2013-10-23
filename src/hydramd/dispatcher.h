@@ -6,6 +6,7 @@
 \*****************************************************************************/
 //File for semaphores
 #define HYDRA_JOBS_LOCK "jobs.lock"
+#define HYDRA_JOBS_SHMEM "jobs.mem"
 
 //for uint16_t
 
