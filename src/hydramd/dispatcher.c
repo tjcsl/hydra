@@ -16,11 +16,8 @@
 
 struct hydra_job {
     uint32_t id;
-    char *exename;
-    void *exeval;
-    uint32_t num_files;
-    char **filenames;
-    void **files;
+    char *tarfile;
+    char **exeargs;
 };
 
 static int semid;
@@ -30,17 +27,7 @@ static key_t shmemkey;
 
 static void *lock_shmem();
 static int ulock_shmem(void *);
-
-static int safe_create(const char* fname, mode_t mode) {
-    int i = creat(fname, mode);
-    if (i < 0) {
-        if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failed to create file %s", fname);
-            hydra_exit_error("failed to start hydramd dispatcher");
-        }
-    }
-    return i;
-}
+static int safe_create(const char*, mode_t);
 
 void hydra_dispatcher_init() {
     safe_create(HYDRA_JOBS_LOCK, 0644);
@@ -75,7 +62,7 @@ void hydra_dispatcher_destroy() {
     //and delete
     semctl(semid, 0, IPC_RMID);
     shmctl(shmid, IPC_RMID, NULL);
-    syslog(LOG_INFO, "Dispatcher shut down");
+    syslog(LOG_INFO, "Dispatcher shut down")
 }
 
 uint32_t hydra_dispatcher_get_jobid() {
@@ -107,4 +94,15 @@ static int ulock_shmem(void* data) {
     ops.sem_flg = 0;
     if (semop(semid, &ops, 1) == -1) {return -1;}
     return shmdt(data);
+}
+
+static int safe_create(const char* fname, mode_t mode) {
+    int i = creat(fname, mode);
+    if (i < 0) {
+        if (errno != EEXIST) {
+            syslog(LOG_CRIT, "Failed to create file %s", fname);
+            hydra_exit_error("failed to start hydramd dispatcher");
+        }
+    }
+    return i;
 }
