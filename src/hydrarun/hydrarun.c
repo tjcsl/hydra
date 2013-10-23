@@ -11,8 +11,8 @@
 #include "hydrapacket.h"
 #include "hydracommon.h"
 
-void display_help(char* argv[]){
-    printf("Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]\n", argv[0]);
+void display_help(char* argv[], FILE* fd){
+    fprintf(fd, "Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]\n", argv[0]);
 }
 
 int main(int argc, char* argv[]){
@@ -43,12 +43,12 @@ int main(int argc, char* argv[]){
                 hmhostset = 1;
                 break;
             case '?':
-                display_help(argv);
+                display_help(argv, stdout);
                 return 1;
         }
     }
     if(!slotsset || !execset || !hmhostset) {
-        display_help(argv);
+        display_help(argv, stderr);
         return 1;
     }
     // Done with arg parsing, output arguments to user
@@ -80,11 +80,15 @@ int main(int argc, char* argv[]){
     if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots)) != 0) {
         printf("Write failed, %d\n", errno);
     }
+    int pt;
     //We don't actually use this yet, but we need to get it or things are sad
-    hydra_get_next_packettype(sd);
+    if((pt = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
+        fprintf(stderr, "Received malformed packet: %d", pt);
+        return 1;
+    }
     if ((i = hydra_read_JOBOK(sd, &jobid)) != 0) {
-        printf("Read failed %d %d\n", errno, i);
-        exit(1);
+        fprintf(stderr, "Read failed %d %d\n", errno, i);
+        return 1;
     }
     printf("Jobid: %d\n", jobid);
 
