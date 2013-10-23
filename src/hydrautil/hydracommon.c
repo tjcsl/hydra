@@ -44,6 +44,7 @@ void hydra_daemonize(const char* progname, const char* running_directory
 
     umask(027);
     if (chdir(running_directory)) {
+        syslog(LOG_CRIT, "Couldn't change running directory, error %d", errno);
         hydra_exit_error("Failed to change running directory");
     }
     

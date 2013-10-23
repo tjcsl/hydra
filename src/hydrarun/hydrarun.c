@@ -77,8 +77,15 @@ int main(int argc, char* argv[]){
     }
     // Time for actual socket communication.
     uint32_t jobid;
-    hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots));
-    hydra_read_JOBOK(sd, &jobid);
+    if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots)) != 0) {
+        printf("Write failed, %d\n", errno);
+    }
+    //We don't actually use this yet, but we need to get it or things are sad
+    hydra_get_next_packettype(sd);
+    if ((i = hydra_read_JOBOK(sd, &jobid)) != 0) {
+        printf("Read failed %d %d\n", errno, i);
+        exit(1);
+    }
     printf("Jobid: %d\n", jobid);
 
     // We don't need this any more!

@@ -56,14 +56,14 @@ int main(int argc, char** argv) {
         }
     }
     
-    i = mkdir(run_location, 0444);
+    umask(027);
+    i = mkdir(run_location, 0666);
     if (i == -1) {
         if (errno != EEXIST) {
             printf("Couldn't create running directory %s, error %d", run_location, errno);
         }
         //XXX:Handle run_location being a file
     }
-
 
     if (daemonize) {
         hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
