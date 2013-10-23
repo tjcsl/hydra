@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "hydraslave.h"
 #include "hydracommon.h"
 #include "system.h"
@@ -25,8 +26,9 @@ void sig_handler(int);
 int main(int argc, char **argv) {
     int daemonize = 1;
     int c;
-    int sock;
     char *prgname = argv[0];
+    ConfigFile *config, *curr;
+    ConfigEntry *entry;
     while((c = getopt(argc, argv, "Xh")) != -1) {
         switch(c) {
             case 'X':
@@ -46,7 +48,15 @@ int main(int argc, char **argv) {
     if(daemonize) {
         hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
     }
-    sock = hydra_get_highsock("localhost", "1997", 0);
+    config = parse_config("config.test");
+    printf("Config == NULL: %d\n", config == NULL);
+    printf("Config Entries:\n");
+    for(curr = config; curr != NULL; curr = curr->next) {
+        if(curr->entry == NULL)
+            continue;
+        entry = curr->entry;
+        printf("Config Entry: %s = %s, Type: %d\n", entry->key, entry->value, entry->value_type);
+    }
     while(1) {
         sleep(10);
     }
