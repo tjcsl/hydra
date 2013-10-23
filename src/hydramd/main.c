@@ -14,6 +14,7 @@
 #include <string.h>
 #include "hydramaster.h"
 #include "hydracommon.h"
+#include "dispatcher.h"
 
 //TODO:Make this stuff load from config file
 #define PIDFILE "./hydramd.pid"
@@ -23,6 +24,7 @@ void handlesignal(int sig) {
     switch(sig) {
         case SIGTERM:
             syslog(LOG_INFO, "Shutting down hydramd");
+            hydra_dispatcher_destroy();
             exit(0);
             break;
     }

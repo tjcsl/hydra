@@ -59,7 +59,11 @@ void hydra_read_connection(int fd) {
     for (;;) {
         pt = hydra_get_next_packettype(fd);
         if (pt < 0) {
-            syslog(LOG_WARNING, "Read failed %d", errno);
+            if (errno == 0) {
+                syslog(LOG_INFO, "Lost connection, remote end probably hung up in a valid manner");
+                return;
+            }
+            syslog(LOG_WARNING, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), pt);
             return;
         }
         switch(pt) {
