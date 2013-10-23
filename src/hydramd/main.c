@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     }
     
     umask(027);
-    i = mkdir(run_location, 0666);
+    i = mkdir(run_location, 0777);
     if (i == -1) {
         if (errno != EEXIST) {
             printf("Couldn't create running directory %s, error %d", run_location, errno);
