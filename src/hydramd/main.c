@@ -9,9 +9,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <signal.h>
 #include <string.h>
+
+#include "hydralog.h"
 #include "hydramaster.h"
 #include "hydracommon.h"
 #include "dispatcher.h"
@@ -20,10 +21,10 @@
 #define PIDFILE "./hydramd.pid"
 
 void handlesignal(int sig) {
-    syslog(LOG_INFO, "Received signal %d", sig);
+    hydra_log(HYDRA_LOG_INFO, "Received signal %d", sig);
     switch(sig) {
         case SIGTERM:
-            syslog(LOG_INFO, "Shutting down hydramd");
+            hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
             hydra_dispatcher_destroy();
             exit(0);
             break;
@@ -62,12 +63,14 @@ int main(int argc, char** argv) {
     i = mkdir(run_location, 0777);
     if (i == -1) {
         if (errno != EEXIST) {
-            printf("Couldn't create running directory %s, error %d", run_location, errno);
+            hydra_log(HYDRA_LOG_CRIT, "Couldn't create running directory %s, error %d", run_location, errno);
+            exit(1);
         }
         //XXX:Handle run_location being a file
     }
 
     if (daemonize) {
+        hydra_log_target(HYDRA_LOG_SYSLOG);
         hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
     }
 

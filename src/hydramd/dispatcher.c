@@ -7,12 +7,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
 
 #include "hydracommon.h"
+#include "hydralog.h"
 
 struct hydra_job {
     uint32_t id;
@@ -45,16 +45,16 @@ void hydra_dispatcher_init() {
     shmemkey = ftok(HYDRA_JOBS_SHMEM, 0);
     if (shmemkey < 0) {
         semctl(semid, 0, IPC_RMID);
-        syslog(LOG_CRIT, "Badness %d", errno);
+        hydra_log(HYDRA_LOG_CRIT, "Badness %d", errno);
         hydra_exit_error("Couldn't get shmemkey");
     }
     shmid = shmget(shmemkey, 1024, 0644 | IPC_CREAT);
     if (shmid < 0) {
         semctl(semid, 0, IPC_RMID);
-        syslog(LOG_CRIT, "No good %d", errno);
+        hydra_log(HYDRA_LOG_CRIT, "No good %d", errno);
         hydra_exit_error("Couldn't allocate shared memory");
     }
-    syslog(LOG_INFO, "Dispatcher started");
+    hydra_log(HYDRA_LOG_INFO, "Dispatcher started");
 }
 
 void hydra_dispatcher_destroy() {
@@ -67,7 +67,7 @@ void hydra_dispatcher_destroy() {
     //and delete
     semctl(semid, 0, IPC_RMID);
     shmctl(shmid, IPC_RMID, NULL);
-    syslog(LOG_INFO, "Dispatcher shut down");
+    hydra_log(HYDRA_LOG_INFO, "Dispatcher shut down");
 }
 
 uint32_t hydra_dispatcher_get_jobid() {
@@ -147,7 +147,7 @@ static int safe_create(const char* fname, mode_t mode) {
     int i = creat(fname, mode);
     if (i < 0) {
         if (errno != EEXIST) {
-            syslog(LOG_CRIT, "Failed to create file %s", fname);
+            hydra_log(HYDRA_LOG_CRIT, "Failed to create file %s", fname);
             hydra_exit_error("failed to start hydramd dispatcher");
         }
     }

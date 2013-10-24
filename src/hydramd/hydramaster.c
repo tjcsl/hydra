@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/syslog.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include "hydracommon.h"
 #include "hydranet.h"
+#include "hydralog.h"
 #include "hydrapacket.h"
 #include "dispatcher.h"
 
@@ -24,7 +24,7 @@ void hydra_listen() {
     int listen_sock = hydra_get_highsock(NULL, "51432", AI_PASSIVE);
     hydra_dispatcher_init();
     if (listen_sock < 0) {
-        syslog(LOG_WARNING, "%d", listen_sock);
+        hydra_log(HYDRA_LOG_WARN, "%d", listen_sock);
         hydra_exit_error("Couldn't get a socket to listen with");
     }
     if (listen(listen_sock, 20) < 0) {
@@ -34,16 +34,16 @@ void hydra_listen() {
     for (;;) {
         fd = accept(listen_sock, (struct sockaddr*) &addr, &addrlen);
         if (fd < 0) {
-            syslog(LOG_WARNING, "Error recieving connection: %d", errno);
+            hydra_log(HYDRA_LOG_WARN, "Error recieving connection: %d", errno);
             break;
         } else {
-            syslog(LOG_INFO, "recieved connection");
+            hydra_log(HYDRA_LOG_INFO, "recieved connection");
             
             i = fork();
             if (i == 0){
                 close(listen_sock);
                 hydra_read_connection(fd);
-                syslog(LOG_INFO, "Hydramd thread shutting down");
+                hydra_log(HYDRA_LOG_INFO, "Hydramd thread shutting down");
                 return;
             }
         }
@@ -60,26 +60,26 @@ void hydra_read_connection(int fd) {
         pt = hydra_get_next_packettype(fd);
         if (pt < 0) {
             if (errno == 0) {
-                syslog(LOG_INFO, "Lost connection, remote end probably hung up in a valid manner");
+                hydra_log(HYDRA_LOG_INFO, "Lost connection, remote end probably hung up in a valid manner");
                 return;
             }
-            syslog(LOG_WARNING, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), pt);
+            hydra_log(HYDRA_LOG_WARN, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), pt);
             return;
         }
         switch(pt) {
             case HYDRA_PACKET_SUBMIT:
                 hydra_read_SUBMIT(fd, (void**)&exename, &exenamelen, &slots);
-                syslog(LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
+                hydra_log(HYDRA_LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
                 jobid = hydra_dispatcher_get_jobid();
-                syslog(LOG_INFO, "Replying with JOBID %d", jobid);
+                hydra_log(HYDRA_LOG_INFO, "Replying with JOBID %d", jobid);
                 hydra_dispatcher_set_job_active(jobid);
-                syslog(LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
+                hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
                 hydra_dispatcher_clr_job_active(jobid);
-                syslog(LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
+                hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
                 hydra_write_JOBOK(fd, jobid);
                 break;
             default:
-                syslog(LOG_INFO, "Packet type: %d", pt);
+                hydra_log(HYDRA_LOG_INFO, "Packet type: %d", pt);
         }
     }
 }

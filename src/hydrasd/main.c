@@ -6,18 +6,17 @@
 // * Actually add some functionality!
 
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <sys/types.h>
 
 #include <fcntl.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "config.h"
 #include "hydraslave.h"
 #include "hydracommon.h"
+#include "hydralog.h"
 #include "system.h"
 
 void display_help(const char *);
@@ -46,16 +45,17 @@ int main(int argc, char **argv) {
     }
     
     if(daemonize) {
+        hydra_log_target(HYDRA_LOG_SYSLOG);
         hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
     }
     config = parse_config("config.test");
-    printf("Config == NULL: %d\n", config == NULL);
-    printf("Config Entries:\n");
+    hydra_log(HYDRA_LOG_INFO, "Config == NULL: %d\n", config == NULL);
+    hydra_log(HYDRA_LOG_INFO,"Config Entries:\n");
     for(curr = config; curr != NULL; curr = curr->next) {
         if(curr->entry == NULL)
             continue;
         entry = curr->entry;
-        printf("Config Entry: %s = %s, Type: %d\n", entry->key, entry->value, entry->value_type);
+        hydra_log(HYDRA_LOG_INFO,"Config Entry: %s = %s, Type: %d\n", entry->key, entry->value, entry->value_type);
     }
     while(1) {
         sleep(10);
@@ -64,13 +64,13 @@ int main(int argc, char **argv) {
 }
 
 void display_help(const char *prgname) {
-    printf("usage: %s [-hX]", prgname);
+    hydra_log(HYDRA_LOG_INFO,"usage: %s [-hX]", prgname);
 }
 
 void sig_handler(int signal) {
     switch (signal) {
         case SIGTERM:
-            syslog(LOG_INFO, "Recieved SIGTERM; Exiting");
+            hydra_log(HYDRA_LOG_INFO, "Recieved SIGTERM; Exiting");
             exit(0);
             break;
     }

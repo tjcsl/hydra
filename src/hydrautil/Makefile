@@ -1,4 +1,5 @@
-OBJECTS=$(OUTDIR)/hydracommon.o $(OUTDIR)/hydranet.o  $(OUTDIR)/hydrapacket.o
+OBJECTS=$(OUTDIR)/hydracommon.o $(OUTDIR)/hydranet.o  $(OUTDIR)/hydrapacket.o \
+		$(OUTDIR)/hydralog.o
 
 $(OUTDIR)/libhydrautil.a: $(OBJECTS)
 	ar rcs $(OUTDIR)/libhydrautil.a $(OBJECTS)
@@ -9,11 +10,15 @@ $(OUTDIR)/hydracommon.o: hydracommon.c
 $(OUTDIR)/hydranet.o : hydranet.c
 	gcc -c $^ -o $@
 
-$(OUTDIR)/hydrapacket.o: hydrapacket.c hydrapacket.h
+$(OUTDIR)/hydrapacket.o: hydrapacket.c
 	gcc -c hydrapacket.c -o $@
+
+$(OUTDIR)/hydralog.o: hydralog.c
+	gcc -c $^ -o $@
 
 hydrapacket.c : hydrapacket.h hydrapacket.in
 hydrapacket.h : hydrapacket.in gen_hydrapacket.py
 	python3 ./gen_hydrapacket.py
 hydracommon.c : hydracommon.h
 hydranet.c : hydranet.h
+hydralog.c : hydralog.h
