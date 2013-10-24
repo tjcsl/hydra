@@ -72,6 +72,10 @@ void hydra_read_connection(int fd) {
                 syslog(LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
                 jobid = hydra_dispatcher_get_jobid();
                 syslog(LOG_INFO, "Replying with JOBID %d", jobid);
+                hydra_dispatcher_set_job_active(jobid);
+                syslog(LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
+                hydra_dispatcher_clr_job_active(jobid);
+                syslog(LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
                 hydra_write_JOBOK(fd, jobid);
                 break;
             default:
