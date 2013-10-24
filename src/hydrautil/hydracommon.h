@@ -7,7 +7,6 @@ void hydra_daemonize(const char* progname, const char* running_directory,
 void hydra_exit_error(const char* err);
 
 //Gets an IPv6 socket if we can, IPv4 otherwise.
-//Logs to syslog, so should only be used in daemons
 int hydra_get_highsock(const char* node, const char* service, int flags);
 
 #endif

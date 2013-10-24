@@ -3,9 +3,9 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <sys/signal.h>
 #include <sys/types.h>
+#include <sys/syslog.h>
 #include <unistd.h>
 #include <string.h>
 #include <netdb.h>
@@ -13,8 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BOUND6 0x1
-#define BOUND4 0x2
+#include "hydralog.h"
 
 void hydra_daemonize(const char* progname, const char* running_directory 
                     ,const char* lockfile, void (*sighandler)(int)) {
@@ -44,7 +43,7 @@ void hydra_daemonize(const char* progname, const char* running_directory
 
     umask(027);
     if (chdir(running_directory)) {
-        syslog(LOG_CRIT, "Couldn't change running directory, error %d", errno);
+        hydra_log(HYDRA_LOG_CRIT, "Couldn't change running directory, error %d", errno);
         hydra_exit_error("Failed to change running directory");
     }
     
@@ -67,11 +66,11 @@ void hydra_daemonize(const char* progname, const char* running_directory
     signal(SIGHUP, sighandler);
     signal(SIGTERM, sighandler);
 
-    syslog(LOG_INFO, "Daemon successfully daemonized");
+    hydra_log(HYDRA_LOG_INFO, "Daemon successfully daemonized");
 }
 
 void hydra_exit_error(const char* err) {
-    syslog(LOG_CRIT, "%s", err);
+    hydra_log(HYDRA_LOG_CRIT, "%s", err);
     exit(1);
 }
 

@@ -9,10 +9,11 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include "hydrapacket.h"
+#include "hydralog.h"
 #include "hydracommon.h"
 
-void display_help(char* argv[], FILE* fd){
-    fprintf(fd, "Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]\n", argv[0]);
+void display_help(char* argv[]){
+    hydra_log(HYDRA_LOG_INFO, "Usage: %s [-d <data> [-d <data ...]] -h <masterhostname> -s NUM -e <executable> [-- [args]]", argv[0]);
 }
 
 int main(int argc, char* argv[]){
@@ -43,54 +44,54 @@ int main(int argc, char* argv[]){
                 hmhostset = 1;
                 break;
             case '?':
-                display_help(argv, stdout);
+                display_help(argv);
                 return 1;
         }
     }
     if(!slotsset || !execset || !hmhostset) {
-        display_help(argv, stderr);
+        display_help(argv);
         return 1;
     }
     // Done with arg parsing, output arguments to user
-    printf("Hydra: running \"%s\" with %s slots\n", executable, slots);
+    hydra_log(HYDRA_LOG_INFO, "Hydra: running \"%s\" with %s slots", executable, slots);
     int i;
     if(datafiles_count > 0){
-        printf("Datafiles: ");
+        hydra_log(HYDRA_LOG_INFO, "Datafiles: ");
         for(i = 0; i < datafiles_count; i++){
-            printf("%s ", datafiles[i]);
+            hydra_log(HYDRA_LOG_INFO, "%s ", datafiles[i]);
         }
-        printf("\n");
+        hydra_log(HYDRA_LOG_INFO, "");
     }
-    printf("Command line: %s ", executable);
+    hydra_log(HYDRA_LOG_INFO, "Command line: %s ", executable);
     for(i = optind; i < argc; i++){
-        printf("%s ", argv[i]);
+        hydra_log(HYDRA_LOG_INFO, "%s ", argv[i]);
     }
-    printf("\n");
+    hydra_log(HYDRA_LOG_INFO, "");
     /**
      * Make network connection
      */
     int sd = hydra_get_highsock(*hmhost, "51432", 0);
     if(sd < 0){
-        fprintf(stderr, "Couldn't open socket (errno %d) (sd = %d), exiting.\n", errno, sd);
-        fprintf(stderr, "%s\n", gai_strerror(sd));
+        hydra_log(HYDRA_LOG_CRIT, "Couldn't open socket (errno %d) (sd = %d), exiting.", errno, sd);
+        hydra_log(HYDRA_LOG_CRIT, "%s", gai_strerror(sd));
         return 2;
     }
     // Time for actual socket communication.
     uint32_t jobid;
     if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots)) != 0) {
-        printf("Write failed, %d\n", errno);
+        hydra_log(HYDRA_LOG_INFO, "Write failed, %d", errno);
     }
     int pt;
     //We don't actually use this yet, but we need to get it or things are sad
     if((pt = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
-        fprintf(stderr, "Received malformed packet: %d", pt);
+        hydra_log(HYDRA_LOG_CRIT, "Received malformed packet: %d", pt);
         return 1;
     }
     if ((i = hydra_read_JOBOK(sd, &jobid)) != 0) {
-        fprintf(stderr, "Read failed %d %d\n", errno, i);
+        hydra_log(HYDRA_LOG_CRIT, "Read failed %d %d", errno, i);
         return 1;
     }
-    printf("Jobid: %d\n", jobid);
+    hydra_log(HYDRA_LOG_INFO, "Jobid: %d", jobid);
 
     // We don't need this any more!
     close(sd);

@@ -2,12 +2,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/syslog.h>
+#include <string.h>
+#include <stdlib.h>
 
 static int target = HYDRA_LOG_STDOUT;
 
 int hydra_log(int level, const char* fmt, ...) {
-    int l;
+    int l, bufflen;
     FILE *o = stdout;
+    char *fbuff;
     va_list args;
     va_start(args, fmt);
     switch (target) {
@@ -23,9 +26,16 @@ int hydra_log(int level, const char* fmt, ...) {
             break;
         case HYDRA_LOG_STDOUT:
             if (level == HYDRA_LOG_CRIT) o = stderr;
-            vfprintf(o, fmt, args);
+            bufflen = strlen(fmt) + 2;
+            fbuff = malloc(bufflen);
+            strcpy(fbuff, fmt);
+            fbuff[bufflen - 2] = '\n';
+            fbuff[bufflen - 1] = '\0';
+            vfprintf(o, fbuff, args);
+            free(fbuff);
             break;
-
+        default:
+            fprintf(stderr, "Invalid log target %d", target);
     }
     va_end(args);
 }
