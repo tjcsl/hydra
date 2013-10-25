@@ -5,12 +5,6 @@ inf = open("hydrapacket.in").read().split("\n")
 h = open("hydrapacket.h", "w")
 c = open("hydrapacket.c", "w")
 
-includes = ['arpa/inet.h'
-           ,'string.h'
-           ,'stdlib.h'
-           ,'sys/stat.h'
-           ,'unistd.h']
-
 #will be PACKETNAME: {arg1_name:arg1type}
 packettypes = {}
 #PACKETNAME:integer id
@@ -97,74 +91,8 @@ for ptype in packettypes:
 h.write("extern int hydra_get_next_packettype(int fd);\n")
 h.write("#endif")
 
-#includes for hydrapacket.c
-for inc in includes:
-    c.write("#include <%s>\n" % inc)
-c.write("#include \"hydrapacket.h\"\n")
 #write utility functions
-c.write("\
-int read_data(int fd, int *len, void **data) {\n\
-    int i;\n\
-    if ((i = read(fd, len, 4)) < 4) {\n\
-        return i;\n\
-    }\n\
-    *len = ntohl(*len);\n\
-    *data = malloc(*len);\n\
-    if ((i = read(fd, *data, *len)) != *len) {\n\
-        return i;\n\
-    }\n\
-}\n\
-\n\
-int write_data(int fd, int len, void *data) {\n\
-    int i;\n\
-    uint32_t u32;\n\
-    u32 = len;\n\
-    u32 = htonl(u32);\n\
-    if ((i = write(fd, &u32, 4)) != 4) {return i;} \n\
-    if ((i = write(fd, data, len)) != len) {return i;}\n\
-}\n\
-\n\
-#include \"hydralog.h\"\n\
-#include <errno.h>\n\
-int read_file(int fd, int out) {\n\
-    uint32_t l;\n\
-    int nbytes; \n\
-    if (read(fd, &l, sizeof(uint32_t)) < 0) {return -1;}\n\
-    l = ntohl(l);\n\
-    char buff[4096];\n\
-    while (l > 0) {\n\
-        int to_read = (l < 4096) ? l : 4096;\n\
-        int res;\n\
-        res = read(fd, buff, to_read);\n\
-        if (res < 0) {\n\
-            return res;\n\
-        }\n\
-        l -= res;\n\
-        res = write(out, buff, to_read);\n\
-        if (res < 0) {\n\
-            return res;\n\
-        }\n\
-    }\n\
-\n\
-    return 0;\n\
-}\n\
-\n\
-int write_file(int fd, int in) {\n\
-    struct stat info;\n\
-    uint32_t w;\n\
-    if (fstat(in, &info) < 0) {return -1;}\n\
-    w = htonl((uint32_t)(info.st_size));\n\
-    if (write(fd, &w, sizeof(uint32_t)) < 0) {return -1;}\n\
-    return sendfile(fd, in, 0, info.st_size);\n\
-}\n\
-\n\
-int hydra_get_next_packettype(int fd) {\n\
-    char c;\n\
-    if (read(fd, &c, 1) != 1) {\n\
-        return -1;\n\
-    }\n\
-    return c;\n\
-}")
+c.write(open("hydrapacket.template.c").read())
 
 def gen_write_file(name):
     c.write("\n    if ((i = write_file(fd, %s)) <= 0) {return i;}\n" %(name))
