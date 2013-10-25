@@ -124,12 +124,29 @@ int write_data(int fd, int len, void *data) {\n\
     if ((i = write(fd, data, len)) != len) {return i;}\n\
 }\n\
 \n\
+#include \"hydralog.h\"\n\
+#include <errno.h>\n\
 int read_file(int fd, int out) {\n\
     uint32_t l;\n\
     int nbytes; \n\
-    if (read(fd, &l, sizeof(uint32_t))) {return -1;}\n\
+    if (read(fd, &l, sizeof(uint32_t)) < 0) {return -1;}\n\
     l = ntohl(l);\n\
-    sendfile(out, fd, 0, l);\n\
+    char buff[4096];\n\
+    while (l > 0) {\n\
+        int to_read = (l < 4096) ? l : 4096;\n\
+        int res;\n\
+        res = read(fd, buff, to_read);\n\
+        if (res < 0) {\n\
+            return res;\n\
+        }\n\
+        l -= res;\n\
+        res = write(out, buff, to_read);\n\
+        if (res < 0) {\n\
+            return res;\n\
+        }\n\
+    }\n\
+\n\
+    return 0;\n\
 }\n\
 \n\
 int write_file(int fd, int in) {\n\
@@ -138,15 +155,22 @@ int write_file(int fd, int in) {\n\
     if (fstat(in, &info) < 0) {return -1;}\n\
     w = htonl((uint32_t)(info.st_size));\n\
     if (write(fd, &w, sizeof(uint32_t)) < 0) {return -1;}\n\
-    sendfile(fd, in, 0, info.st_size);\n\
+    return sendfile(fd, in, 0, info.st_size);\n\
 }\n\
-")
+\n\
+int hydra_get_next_packettype(int fd) {\n\
+    char c;\n\
+    if (read(fd, &c, 1) != 1) {\n\
+        return -1;\n\
+    }\n\
+    return c;\n\
+}")
 
 def gen_write_file(name):
-    c.write("\nif ((i = write_file(fd, %s)) <= 0) {return i;}\n" %(name))
+    c.write("\n    if ((i = write_file(fd, %s)) <= 0) {return i;}\n" %(name))
 
 def gen_read_file(name):
-    c.write("\nif ((i = read_file(fd, %s)) <= 0) {return i;}\n" %(name))
+    c.write("\n    if ((i = read_file(fd, %s)) <= 0) {return i;}\n" %(name))
 
 def gen_read_data(dname):
     c.write("\n\
@@ -215,7 +239,7 @@ for ptype in packettypes:
             reads[packet_args[arg]](arg)
         else:
             print("Warning: no write function for argtype", packet_args[arg])
-    c.write("   return 0;\n")
+    c.write("    return 0;\n")
     c.write("}\n")
     c.write("int hydra_write_%s(%s) {\n" % (ptype, packet_write_astrings[ptype]))
     c.write("    int i; uint16_t u16; uint32_t u32; char type;\n");
@@ -229,12 +253,3 @@ for ptype in packettypes:
             print("Warning: no write function for argtype", packet_args[arg])
     c.write("    return 0;\n")
     c.write("}\n")
-
-c.write("\
-int hydra_get_next_packettype(int fd) {\n\
-    char c;\n\
-    if (read(fd, &c, 1) != 1) {\n\
-        return -1;\n\
-    }\n\
-    return c;\n\
-}")

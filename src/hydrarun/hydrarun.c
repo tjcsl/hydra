@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <fcntl.h>
+
 #include "hydrapacket.h"
 #include "hydralog.h"
 #include "hydracommon.h"
@@ -78,9 +80,19 @@ int main(int argc, char* argv[]){
     }
     // Time for actual socket communication.
     uint32_t jobid;
-    if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots)) != 0) {
+    //XXX: TESTING
+    int magic = open("/tmp/testing", O_RDONLY);
+    if (magic < 0) {
+        hydra_log(HYDRA_LOG_CRIT, "Couldn't open /bin/bash");
+        return -1;
+    }
+    //XXX: END TESTING
+    if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots), magic) != 0) {
         hydra_log(HYDRA_LOG_INFO, "Write failed, %d", errno);
     }
+    //XXX: TESTING
+    close(magic);
+    //XXX: END TESTING
     int pt;
     //We don't actually use this yet, but we need to get it or things are sad
     if((pt = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {

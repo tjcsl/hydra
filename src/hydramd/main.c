@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
         }
     }
     
-    umask(027);
+    umask(0027);
     i = mkdir(run_location, 0777);
     if (i == -1) {
         if (errno != EEXIST) {
