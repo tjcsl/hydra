@@ -95,51 +95,35 @@ h.write("#endif")
 c.write(open("hydrapacket.template.c").read())
 
 def gen_write_file(name):
-    c.write("\n    if ((i = write_file(fd, %s)) <= 0) {return i;}\n" %(name))
+    c.write("    if (write_file(fd, %s) <= 0) {return -1;}\n" %(name))
 
 def gen_read_file(name):
-    c.write("\n    if ((i = read_file(fd, %s)) <= 0) {return i;}\n" %(name))
+    c.write("    if (read_file(fd, %s) <= 0) {return -1;}\n" %(name))
 
 def gen_read_data(dname):
-    c.write("\n\
-    if ((i = read_data(fd, %s_len, %s_data)) <= 0) {return i;}\n" %(dname, dname))
+    c.write("    if (read_data(fd, %s_len, %s_data) <= 0) {return -1;}\n" %(dname, dname))
 
 def gen_write_data(dname):
-    c.write("\n\
-    write_data(fd, %s_len, %s_data);" %
+    c.write("    write_data(fd, %s_len, %s_data);" %
     (dname, dname))
 
 def gen_read_char(name):
-    c.write("    if ((i = read(fd, %s, 1)) != 1) {return i;}\n" % (name))
+    c.write("    if (read(fd, %s, 1) != 1) {return -1;}\n" % (name))
 
 def gen_write_char(name):
-    c.write("    if ((i = write(fd, &%s, 1)) != 1) {return i;}\n" % (name))
+    c.write("    if (write(fd, &%s, 1) != 1) {return -1;}\n" % (name))
 
 def gen_read_u32(name):
-    c.write("\n\
-    if ((i = read(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n\
-    *%s = ntohl(u32);\n"
-    % (name))
+    c.write("    if (read_u32(fd, %s) < 0) {return -1;}\n" % (name))
 
 def gen_write_u32(name):
-    c.write("\n\
-    u32 = %s; \n\
-    u32 = htonl(u32);\n\
-    if ((i = write(fd, &u32, sizeof(uint32_t))) != sizeof(uint32_t)) {return i;}\n"
-    % (name))
+    c.write("    if (write_u32(fd, %s) < 0) {return -1;}\n" % (name))
 
 def gen_read_u16(name):
-    c.write("\n\
-    if ((i = read(fd, &u16, sizeof(uint16_t))) != sizeof(uint16_t)) {return i;}\n\
-    *%s = ntohs(u16);\n"
-    % (name))
+    c.write("    if (read_u16(fd, %s) < 0) {return -1;}\n" %(name))
 
 def gen_write_u16(name):
-    c.write("\n\
-    u16 = %s; \n\
-    u16 = htons(u16);\n\
-    if ((i = write(fd, &u16, sizeof(uint16_t))) != sizeof(uint16_t)) {return i;}\n"
-    % (name))
+    c.write("    if (write_u16(fd, %s) < 0) {return -1;}\n" % (name))
 
 writes = {
         "byte":gen_write_char,
@@ -159,7 +143,6 @@ reads = {
 for ptype in packettypes:
     print("Generating ptype", ptype)
     c.write("int hydra_read_%s(%s) {\n" % (ptype, packet_read_astrings[ptype]))
-    c.write("    int i; uint16_t u16; uint32_t u32;\n");
     packet_args = packettypes[ptype]
     for arg in packet_args:
         print ("Generating argument", arg, "type", packet_args[arg])
@@ -170,7 +153,7 @@ for ptype in packettypes:
     c.write("    return 0;\n")
     c.write("}\n")
     c.write("int hydra_write_%s(%s) {\n" % (ptype, packet_write_astrings[ptype]))
-    c.write("    int i; uint16_t u16; uint32_t u32; char type;\n");
+    c.write("    char type;\n");
     c.write("    type = %s;\n" % packet_ids[ptype])
     c.write("    if (write(fd, &type, 1) != 1) {return -1;}\n")
     for arg in packet_args:

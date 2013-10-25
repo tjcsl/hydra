@@ -17,7 +17,7 @@ $(OUTDIR)/hydralog.o: hydralog.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 hydrapacket.c : hydrapacket.h hydrapacket.in
-hydrapacket.h : hydrapacket.in gen_hydrapacket.py
+hydrapacket.h : hydrapacket.in gen_hydrapacket.py hydrapacket.template.c
 	python3 ./gen_hydrapacket.py
 hydracommon.c : hydracommon.h
 hydranet.c : hydranet.h
