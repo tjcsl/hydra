@@ -5,16 +5,16 @@ $(OUTDIR)/libhydrautil.a: $(OBJECTS)
 	ar rcs $(OUTDIR)/libhydrautil.a $(OBJECTS)
 
 $(OUTDIR)/hydracommon.o: hydracommon.c
-	gcc $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OUTDIR)/hydranet.o : hydranet.c
-	gcc $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OUTDIR)/hydrapacket.o: hydrapacket.c
-	gcc $(CFLAGS) -c hydrapacket.c -o $@
+	$(CC) $(CFLAGS) -c hydrapacket.c -o $@
 
 $(OUTDIR)/hydralog.o: hydralog.c
-	gcc $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 hydrapacket.c : hydrapacket.h hydrapacket.in
 hydrapacket.h : hydrapacket.in gen_hydrapacket.py
