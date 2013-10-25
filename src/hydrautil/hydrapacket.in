@@ -14,7 +14,7 @@ CHRESPONSE      u32:challenge_resp
 CHOK            byte:ok
 PING
 HEARTBEAT       data:hostname u16:slots u32:mb_ram u32:mb_free u32:load_avg
-SUBMIT          data:exe_name u16:slots
+SUBMIT          data:exe_name u16:slots file:tar
 EXEC            u32:jobid #Not done
 JOBOK           u32:jobid #Not done
 JOBDATA         u32:jobid #Not done

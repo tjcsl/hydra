@@ -8,6 +8,7 @@ c = open("hydrapacket.c", "w")
 includes = ['arpa/inet.h'
            ,'string.h'
            ,'stdlib.h'
+           ,'sys/stat.h'
            ,'unistd.h']
 
 #will be PACKETNAME: {arg1_name:arg1type}
@@ -48,6 +49,8 @@ for line in inf:
             paramtype = "uint16_t"
         elif packet_args[arg] == 'byte':
             paramtype = "char"
+        elif packet_args[arg] == 'file':
+            paramtype = "int"
         elif packet_args[arg] == 'data':
             argstring += "void*  %s_data,int %s_len," % (arg, arg)
             continue
@@ -63,6 +66,8 @@ for line in inf:
             paramtype = "uint16_t"
         elif packet_args[arg] == 'byte':
             paramtype = "char"
+        elif packet_args[arg] == 'file':
+            paramType = "int"
         elif packet_args[arg] == 'data':
             argstring += "void** %s_data,int *%s_len," % (arg, arg)
             continue
@@ -104,7 +109,7 @@ int read_data(int fd, int *len, void **data) {\n\
     }\n\
     *len = ntohl(*len);\n\
     *data = malloc(*len);\n\
-    if ((i = read(fd, *data, *len)) != len) {\n\
+    if ((i = read(fd, *data, *len)) != *len) {\n\
         return i;\n\
     }\n\
 }\n\
@@ -117,7 +122,30 @@ int write_data(int fd, int len, void *data) {\n\
     if ((i = write(fd, &u32, 4)) != 4) {return i;} \n\
     if ((i = write(fd, data, len)) != len) {return i;}\n\
 }\n\
+\n\
+int read_file(int fd, int out) {\n\
+    uint32_t l;\n\
+    int nbytes; \n\
+    if (read(fd, &l, sizeof(uint32_t))) {return -1;}\n\
+    l = ntohl(l);\n\
+    sendfile(out, fd, 0, l);\n\
+}\n\
+\n\
+int write_file(int fd, int in) {\n\
+    struct stat info;\n\
+    uint32_t w;\n\
+    if (fstat(in, &info) < 0) {return -1;}\n\
+    w = htonl((uint32_t)(info.st_size));\n\
+    if (write(fd, &w, sizeof(uint32_t)) < 0) {return -1;}\n\
+    sendfile(fd, in, 0, info.st_size);\n\
+}\n\
 ")
+
+def gen_write_file(name):
+    c.write("\nif ((i = write_file(fd, %s)) <= 0) {return i;}\n" %(name))
+
+def gen_read_file(name):
+    c.write("\nif ((i = read_file(fd, %s)) <= 0) {return i;}\n" %(name))
 
 def gen_read_data(dname):
     c.write("\n\
@@ -164,14 +192,16 @@ writes = {
         "byte":gen_write_char,
         "data":gen_write_data,
         "u32": gen_write_u32,
-        "u16": gen_write_u16
+        "u16": gen_write_u16,
+        "file": gen_write_file,
         }
 
 reads = {
         "byte":gen_read_char,
         "data":gen_read_data,
         "u32": gen_read_u32,
-        "u16": gen_read_u16
+        "u16": gen_read_u16,
+        "file": gen_read_file,
         }
 for ptype in packettypes:
     print("Generating ptype", ptype)
