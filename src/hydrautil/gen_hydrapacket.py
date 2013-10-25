@@ -67,7 +67,8 @@ for line in inf:
         elif packet_args[arg] == 'byte':
             paramtype = "char"
         elif packet_args[arg] == 'file':
-            paramType = "int"
+            argstring += "int %s," %(arg)
+            continue
         elif packet_args[arg] == 'data':
             argstring += "void** %s_data,int *%s_len," % (arg, arg)
             continue
