@@ -19,7 +19,7 @@
 
 void hydra_read_connection(int fd);
 
-int get_tmp_file();
+void handle_submit(int fd);
 
 void hydra_listen() {
     struct sockaddr_in addr;
@@ -56,11 +56,7 @@ void hydra_listen() {
 }
 
 void hydra_read_connection(int fd) {
-    int pt, exenamelen;
-    uint16_t slots;
-    uint32_t jobid;
-    int tmpfile;
-    char* exename;
+    int pt;
     for (;;) {
         pt = hydra_get_next_packettype(fd);
         if (pt < 0) {
@@ -73,24 +69,7 @@ void hydra_read_connection(int fd) {
         }
         switch(pt) {
             case HYDRA_PACKET_SUBMIT:
-                tmpfile = get_tmp_file();
-                if (tmpfile < 0) {
-                    hydra_log(HYDRA_LOG_CRIT, "Error %s", strerror(errno));
-                    hydra_exit_error("Unable to open file descriptor");
-                }
-                if (hydra_read_SUBMIT(fd, (void**)&exename, &exenamelen, &slots, tmpfile) < 0) {
-                    hydra_log(HYDRA_LOG_CRIT, "Failed to read submit data %s", strerror(errno));
-                    hydra_exit_error("Aborting");
-                }
-                close(tmpfile);
-                hydra_log(HYDRA_LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
-                jobid = hydra_dispatcher_get_jobid();
-                hydra_log(HYDRA_LOG_INFO, "Replying with JOBID %d", jobid);
-                hydra_dispatcher_set_job_active(jobid);
-                hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
-                hydra_dispatcher_clr_job_active(jobid);
-                hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
-                hydra_write_JOBOK(fd, jobid);
+                handle_submit(fd);
                 break;
             default:
                 hydra_log(HYDRA_LOG_INFO, "Packet type: %d", pt);
@@ -98,11 +77,36 @@ void hydra_read_connection(int fd) {
     }
 }
 
-int get_tmp_file() {
-    char tmpfile[16];
-    strcpy(tmpfile, "/tmp/XXXXXX");
-    mktemp(tmpfile);
-    if (strlen(tmpfile) == 0) {return -1;}
-    hydra_log(HYDRA_LOG_INFO, "tempfile name %s", tmpfile);
-    return open(tmpfile, O_RDWR | O_CREAT);
+void handle_submit(int fd) {
+    uint16_t slots;
+    uint32_t jobid;
+    int tmpfile, exenamelen;
+    char tmpfilename[16];
+    char* exename;
+    strcpy(tmpfilename, "/tmp/XXXXXX");
+    mktemp(tmpfilename);
+    if (strlen(tmpfilename) == 0) {
+        hydra_log(HYDRA_LOG_CRIT, "Error %s", strerror(errno));
+        hydra_exit_error("Unable to open file descriptor");
+    }
+    hydra_log(HYDRA_LOG_INFO, "tempfile name %s", tmpfilename);
+    tmpfile = open(tmpfilename, O_RDWR | O_CREAT);
+    if (tmpfile < 0) {
+        hydra_log(HYDRA_LOG_CRIT, "Error %s", strerror(errno));
+        hydra_exit_error("Unable to open file descriptor");
+    }
+    if (hydra_read_SUBMIT(fd, (void**)&exename, &exenamelen, &slots, tmpfile) < 0) {
+        hydra_log(HYDRA_LOG_CRIT, "Failed to read submit data %s", strerror(errno));
+        hydra_exit_error("Aborting");
+    }
+    close(tmpfile);
+    //unlink(tmpfilename);
+    hydra_log(HYDRA_LOG_INFO, "Submit read: %s %d %d", exename, exenamelen, slots);
+    jobid = hydra_dispatcher_get_jobid();
+    hydra_log(HYDRA_LOG_INFO, "Replying with JOBID %d", jobid);
+    hydra_dispatcher_set_job_active(jobid);
+    hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
+    hydra_dispatcher_clr_job_active(jobid);
+    hydra_log(HYDRA_LOG_INFO, "Job is active: %d", hydra_dispatcher_get_job_active(jobid));
+    hydra_write_JOBOK(fd, jobid);
 }
