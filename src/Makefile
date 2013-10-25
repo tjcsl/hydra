@@ -3,11 +3,10 @@ export INC
 
 all: hydramd hydrarun hydrasd
 
+$(OUTDIR)/libhydrautil.a: hydrautil/*.c hydrautil/gen_hydrapacket.py
+	@$(MAKE) -C hydrautil
+
 hydramd hydrarun hydrasd: $(OUTDIR)/libhydrautil.a
 	@$(MAKE) -C $@
-
-$(OUTDIR)/libhydrautil.a: hydrautil/*.c hydrautil/gen_hydrapacket.py
-	echo Rebuilding hydrautil
-	@$(MAKE) -C hydrautil
 
 .PHONY: hydramd hydrarun hydrasd

@@ -8,6 +8,8 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 
+#include "hydralog.h"
+
 int read_data(int fd, int *len, void **data) {
     int i;
     if ((i = read(fd, len, 4)) < 4) {
@@ -15,9 +17,7 @@ int read_data(int fd, int *len, void **data) {
     }
     *len = ntohl(*len);
     *data = malloc(*len);
-    if ((i = read(fd, *data, *len)) != *len) {
-        return i;
-    }
+    if ((i = read(fd, *data, *len)) != *len) {return -1;}
     return 0;
 }
 
@@ -26,8 +26,8 @@ int write_data(int fd, int len, void *data) {
     uint32_t u32;
     u32 = len;
     u32 = htonl(u32);
-    if ((i = write(fd, &u32, 4)) != 4) {return i;} 
-    if ((i = write(fd, data, len)) != len) {return i;}
+    if ((i = write(fd, &u32, 4)) != 4) {return -1;}
+    if ((i = write(fd, data, len)) != len) {return -1;}
     return 0;
 }
 

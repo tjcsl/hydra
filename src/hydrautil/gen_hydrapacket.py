@@ -95,16 +95,16 @@ h.write("#endif")
 c.write(open("hydrapacket.template.c").read())
 
 def gen_write_file(name):
-    c.write("    if (write_file(fd, %s) <= 0) {return -1;}\n" %(name))
+    c.write("    if (write_file(fd, %s) < 0) {return -1;}\n" %(name))
 
 def gen_read_file(name):
-    c.write("    if (read_file(fd, %s) <= 0) {return -1;}\n" %(name))
+    c.write("    if (read_file(fd, %s) < 0) {return -1;}\n" %(name))
 
 def gen_read_data(dname):
-    c.write("    if (read_data(fd, %s_len, %s_data) <= 0) {return -1;}\n" %(dname, dname))
+    c.write("    if (read_data(fd, %s_len, %s_data) < 0) {return -1;}\n" %(dname, dname))
 
 def gen_write_data(dname):
-    c.write("    write_data(fd, %s_len, %s_data);" %
+    c.write("    if (write_data(fd, %s_len, %s_data) < 0) {return -1;}" %
     (dname, dname))
 
 def gen_read_char(name):
