@@ -1,8 +1,10 @@
 OBJECTS=$(OUTDIR)/hydracommon.o $(OUTDIR)/hydranet.o  $(OUTDIR)/hydrapacket.o \
 		$(OUTDIR)/hydralog.o
 
-$(OUTDIR)/libhydrautil.a: $(OBJECTS)
+$(OUTDIR)/libhydrautil.a: $(OUTDIR)/libhydrautil.a-stamp
+$(OUTDIR)/libhydrautil.a-stamp: $(OBJECTS)
 	ar rcs $(OUTDIR)/libhydrautil.a $(OBJECTS)
+	date > $(OUTDIR)/libhydrautil.a.stamp
 
 $(OUTDIR)/hydracommon.o: hydracommon.c
 	$(CC) $(CFLAGS) -c $^ -o $@
