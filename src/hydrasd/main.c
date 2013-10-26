@@ -49,6 +49,9 @@ int main(int argc, char **argv) {
         hydra_daemonize("hydrasd", "/tmp", "hydrasd.lock", sig_handler);
     }
     config = parse_config("config.test");
+    if (config == (void*)-1) {
+        hydra_exit_error("Failed to parse config.");
+    }
     hydra_log(HYDRA_LOG_INFO, "Config == NULL: %d\n", config == NULL);
     hydra_log(HYDRA_LOG_INFO,"Config Entries:\n");
     for(curr = config; curr != NULL; curr = curr->next) {
