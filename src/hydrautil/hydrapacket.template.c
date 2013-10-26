@@ -64,7 +64,7 @@ int write_file(int fd, int in) {
 }
 
 int read_u32(int fd, uint32_t *u32) {
-    if (read(fd, &u32, sizeof(uint32_t)) < 0) {return -1;}
+    if (read(fd, u32, sizeof(uint32_t)) < 0) {return -1;}
     *u32 = ntohl(*u32);
     return 0;
 }

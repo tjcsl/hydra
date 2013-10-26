@@ -81,7 +81,7 @@ int main(int argc, char* argv[]){
     // Time for actual socket communication.
     uint32_t jobid;
     //XXX: TESTING
-    int magic = open("/tmp/testing", O_RDONLY);
+    int magic = open("/bin/bash", O_RDONLY);
     if (magic < 0) {
         hydra_log(HYDRA_LOG_CRIT, "Couldn't open /bin/bash");
         return -1;
