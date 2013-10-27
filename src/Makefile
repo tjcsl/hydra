@@ -3,10 +3,10 @@ export INC
 
 all: hydramd hydrarun hydrasd
 
-$(OUTDIR)/libhydrautil.a: hydrautil/*.c hydrautil/gen_hydrapacket.py
+hydrautil :
 	@$(MAKE) -C hydrautil
 
-hydramd hydrarun hydrasd: $(OUTDIR)/libhydrautil.a
+hydramd hydrarun hydrasd: hydrautil
 	@$(MAKE) -C $@
 
-.PHONY: hydramd hydrarun hydrasd
+.PHONY: hydrautil hydramd hydrarun hydrasd all
