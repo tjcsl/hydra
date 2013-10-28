@@ -1,2 +1,2 @@
-#List of nodes we will allow to connect
-whitelist=host1:host2:host3
+[main]
+whitelist_file=/path/to/whitelist_file
