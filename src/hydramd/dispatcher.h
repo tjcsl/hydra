@@ -5,8 +5,8 @@
  *  processies                                                               *
 \*****************************************************************************/
 //File for semaphores
-#define HYDRA_JOBS_LOCK "jobs.lock"
-#define HYDRA_JOBS_SHMEM "jobs.mem"
+#define HYDRA_JOBS_LOCK "./jobs.lock"
+#define HYDRA_JOBS_SHMEM "./jobs.mem"
 
 #define HYDRA_MAX_JOBS 32 * 8
 //for uint16_t

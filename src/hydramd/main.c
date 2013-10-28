@@ -12,31 +12,31 @@
 #include <signal.h>
 #include <string.h>
 
+#include "ini.h"
+
 #include "hydralog.h"
 #include "hydramaster.h"
 #include "hydracommon.h"
 #include "dispatcher.h"
 
-//TODO:Make this stuff load from config file
-#define PIDFILE "./hydramd.pid"
+void handlesignal(int);
+int parse_config(void *, const char*, const char*, const char*);
 
-void handlesignal(int sig) {
-    hydra_log(HYDRA_LOG_INFO, "Received signal %d", sig);
-    switch(sig) {
-        case SIGTERM:
-            hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
-            hydra_dispatcher_destroy();
-            exit(0);
-            break;
-    }
-}
+struct config {
+     char* whitelist_location;
+     char* run_location;
+     char* pid_file;
+};
+
+typedef struct config MasterConfig;
 
 int main(int argc, char** argv) {
     int daemonize = 1;
-    char *config_file = "./conf/hydramd.conf";
-    char *run_location = "/tmp/hydramd";
-    char *lockfile_name = "hydramd.lock";
-    int c, index;
+    MasterConfig config;
+    int c;
+    char* config_file = NULL;
+    char* run_location = NULL;
+    char* lockfile_name = NULL;
     int i;
 
     while ((c = getopt(argc, argv, "Xc:r:l:")) != -1) {
@@ -48,10 +48,10 @@ int main(int argc, char** argv) {
                 config_file = optarg;
                 break;
             case 'r':
-                run_location = optarg;
+                run_location = strdup(optarg);
                 break;
             case 'l':
-                lockfile_name = optarg;
+                lockfile_name = strdup(optarg);
                 break;
             case '?':
                 exit(1);
@@ -59,11 +59,33 @@ int main(int argc, char** argv) {
         }
     }
     
+    if (config_file == NULL || strlen(config_file) == 0) {
+        hydra_exit_error("You must pass -c");
+    }
+
+    config.pid_file = NULL;
+    config.run_location = NULL;
+    config.whitelist_location = NULL;
+
+    if (ini_parse(config_file, parse_config, &config) < 0) {
+        hydra_exit_error("Failed to parse config");
+    }
+
+    if (run_location != NULL && strlen(run_location) != 0) {
+        free(config.run_location);
+        config.run_location = run_location;
+    }
+
+    if (lockfile_name != NULL && strlen(lockfile_name) != 0) {
+        free(config.pid_file);
+        config.pid_file = lockfile_name;
+    }
+
     umask(0027);
-    i = mkdir(run_location, 0777);
+    i = mkdir(config.run_location, 0777);
     if (i == -1) {
         if (errno != EEXIST) {
-            hydra_log(HYDRA_LOG_CRIT, "Couldn't create running directory %s, error %d", run_location, errno);
+            hydra_log(HYDRA_LOG_CRIT, "Couldn't create running directory %s, error %d", config.run_location, errno);
             exit(1);
         }
         //XXX:Handle run_location being a file
@@ -71,10 +93,44 @@ int main(int argc, char** argv) {
 
     if (daemonize) {
         hydra_log_target(HYDRA_LOG_SYSLOG);
-        hydra_daemonize("hydramd", run_location, lockfile_name, handlesignal);
+        hydra_daemonize("hydramd", config.run_location, config.pid_file, handlesignal);
     }
+
+    free(config.run_location);
+    free(config.pid_file);
+    free(config.whitelist_location);
 
     hydra_listen();
 
     return 0;
+}
+
+int parse_config(void * user_data, const char* section, const char* name, const char* value) {
+    MasterConfig *conf = (MasterConfig*)user_data;
+
+    //Temporary macro def to save typing
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    //hydra_log(HYDRA_LOG_INFO, "parsing [%s] %s %s", section, name, value);
+    if (MATCH("main", "whitelist_file")) {
+        conf->whitelist_location = strdup(value);
+    } else if (MATCH("main", "pid_file")) {
+        conf->pid_file = strdup(value);
+    } else if (MATCH("main", "run_loc")) {
+        conf->run_location = strdup(value);
+    } else {
+        return 1;
+    }
+#undef MATCH
+    return 0;
+}
+
+void handlesignal(int sig) {
+    hydra_log(HYDRA_LOG_INFO, "Received signal %d", sig);
+    switch(sig) {
+        case SIGTERM:
+            hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
+            hydra_dispatcher_destroy();
+            exit(0);
+            break;
+    }
 }
