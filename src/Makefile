@@ -1,5 +1,4 @@
-INC=-I$(CURDIR)/hydrautil
-export INC
+export INC := -I$(CURDIR)/hydrautil -I$(CURDIR)/../extern/inih
 
 all: hydramd hydrarun hydrasd
 
