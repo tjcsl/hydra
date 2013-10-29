@@ -26,6 +26,7 @@ struct config {
      char* whitelist_location;
      char* run_location;
      char* pid_file;
+     char* port;
 };
 
 typedef struct config MasterConfig;
@@ -100,7 +101,9 @@ int main(int argc, char** argv) {
     free(config.pid_file);
     free(config.whitelist_location);
 
-    hydra_listen();
+    hydra_listen(config.port);
+
+    free(config.port);
 
     return 0;
 }
@@ -117,6 +120,8 @@ int parse_config(void * user_data, const char* section, const char* name, const 
         conf->pid_file = strdup(value);
     } else if (MATCH("main", "run_loc")) {
         conf->run_location = strdup(value);
+    } else if (MATCH("main", "port")) {
+        conf->port = strdup(value);
     } else {
         return 1;
     }

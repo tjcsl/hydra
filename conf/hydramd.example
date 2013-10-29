@@ -2,3 +2,4 @@
 whitelist_file=/path/to/whitelist_file
 pid_file=/run/hydramd.pid
 run_loc=/tmp/
+port=51432

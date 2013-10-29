@@ -21,11 +21,11 @@ void hydra_read_connection(int fd);
 
 void handle_submit(int fd);
 
-void hydra_listen() {
+void hydra_listen(const char* service) {
     struct sockaddr_in addr;
     socklen_t addrlen;
     int fd, i;
-    int listen_sock = hydra_get_highsock(NULL, "51432", AI_PASSIVE);
+    int listen_sock = hydra_get_highsock(NULL, service, AI_PASSIVE);
     hydra_dispatcher_init();
     if (listen_sock < 0) {
         hydra_log(HYDRA_LOG_WARN, "%d", listen_sock);
