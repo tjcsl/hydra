@@ -31,9 +31,10 @@ struct config {
 
 typedef struct config MasterConfig;
 
+static MasterConfig config;
+
 int main(int argc, char** argv) {
     int daemonize = 1;
-    MasterConfig config;
     int c;
     char* config_file = NULL;
     char* run_location = NULL;
@@ -97,13 +98,12 @@ int main(int argc, char** argv) {
         hydra_daemonize("hydramd", config.run_location, config.pid_file, handlesignal);
     }
 
-    free(config.run_location);
-    free(config.pid_file);
-    free(config.whitelist_location);
-
     hydra_listen(config.port);
 
     free(config.port);
+    free(config.run_location);
+    free(config.pid_file);
+    free(config.whitelist_location);
 
     return 0;
 }
@@ -135,6 +135,10 @@ void handlesignal(int sig) {
         case SIGTERM:
             hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
             hydra_dispatcher_destroy();
+            free(config.port);
+            free(config.run_location);
+            free(config.pid_file);
+            free(config.whitelist_location);
             exit(0);
             break;
     }
