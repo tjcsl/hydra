@@ -1,4 +1,5 @@
 #include "shmem.h"
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -8,7 +9,7 @@ int hydra_shmem_create(const char* lock, const char* mem, size_t size, int *out_
     key_t mem_key = ftok(mem, 0);
     key_t sem_key = ftok(lock, 0);
 
-    *out_shmem = shmget(mem_key, size, 0644 | SHM_CREAT);
+    *out_shmem = shmget(mem_key, size, 0644 | IPC_CREAT);
     if (out_shmem == (int *) -1) {return -1;}
 
     *out_semid = semget(sem_key, 1, 0644 | IPC_CREAT);
@@ -26,5 +27,24 @@ void *hydra_shmem_lock(int semid, int shmemid) {
     ops.sem_num = 0;
     ops.sem_flg = 0;
     if (semop(semid, &ops, 1) == -1) {return (void*)-1;}
-    return shmat(shmid, (void *)0, 0);
+    return shmat(shmemid, (void *)0, 0);
+}
+
+int hydra_shmem_ulck(int semid, void *shmem) {
+    struct sembuf ops;
+    ops.sem_op = 1;
+    ops.sem_num = 0;
+    ops.sem_flg = 0;
+    if (shmdt(shmem) < 0) {return -1;}
+    return semop(semid, &ops, 1);
+}
+
+int hydra_shmem_destroy(int semid, int shmemid) {
+    struct sembuf ops;
+    ops.sem_op = 0;
+    ops.sem_num = 0;
+    ops. sem_flg = 0;
+    if (semop(semid, &ops, 1) < 0) {return -1;}
+    semctl(semid, 0, IPC_RMID);
+    shmctl(shmemid, IPC_RMID, NULL);
 }
