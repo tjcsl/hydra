@@ -1,0 +1,4 @@
+#Host lists is one hostname per line
+#hostnames longer than 120 characters are not supported, if you need more please contact the developers
+host1.example.com
+host2.example.com
