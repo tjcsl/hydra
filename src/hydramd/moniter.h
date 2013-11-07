@@ -4,7 +4,7 @@
 #define HYDRA_MON_LOCK "./hydramon.lock"
 #define HYDRA_MON_MEM "./hydramon.mem"
 
-extern int hydramon_init(const char* whitelist_file_name);
-extern int hydramon_destroy();
+extern int hydra_mon_init(const char* whitelist_file_name);
+extern int hydra_mon_destroy();
 
 #endif

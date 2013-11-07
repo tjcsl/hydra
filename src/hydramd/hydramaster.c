@@ -16,6 +16,7 @@
 #include "hydralog.h"
 #include "hydrapacket.h"
 #include "dispatcher.h"
+#include "moniter.h"
 
 void hydra_read_connection(int fd);
 
@@ -26,7 +27,7 @@ void hydra_listen(const char* service) {
     socklen_t addrlen;
     int fd, i;
     int listen_sock = hydra_get_highsock(NULL, service, AI_PASSIVE);
-    hydra_dispatcher_init();
+
     if (listen_sock < 0) {
         hydra_log(HYDRA_LOG_WARN, "%d", listen_sock);
         hydra_exit_error("Couldn't get a socket to listen with");

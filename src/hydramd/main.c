@@ -18,6 +18,7 @@
 #include "hydramaster.h"
 #include "hydracommon.h"
 #include "dispatcher.h"
+#include "moniter.h"
 
 void handlesignal(int);
 int parse_config(void *, const char*, const char*, const char*);
@@ -98,6 +99,8 @@ int main(int argc, char** argv) {
         hydra_daemonize("hydramd", config.run_location, config.pid_file, handlesignal);
     }
 
+    hydra_dispatcher_init();
+    hydra_mon_init(config.whitelist_location);
     hydra_listen(config.port);
 
     free(config.port);
@@ -135,6 +138,7 @@ void handlesignal(int sig) {
         case SIGTERM:
             hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
             hydra_dispatcher_destroy();
+            hydra_mon_destroy();
             free(config.port);
             free(config.run_location);
             free(config.pid_file);
