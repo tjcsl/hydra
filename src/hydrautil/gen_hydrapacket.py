@@ -35,7 +35,7 @@ for line in inf:
         arg = arg.split(':')
         packet_args[arg[1]] = arg[0]
     argstring = "int fd,"
-    for arg in packet_args:
+    for arg in sorted(packet_args):
         paramtype = ""
         if packet_args[arg] == 'u32':
             paramtype = "uint32_t"
@@ -52,7 +52,7 @@ for line in inf:
     argstring = argstring[:-1]
     packet_write_astrings[packet_type] = argstring
     argstring = "int fd,"
-    for arg in packet_args:
+    for arg in sorted(packet_args):
         paramtype = ""
         if packet_args[arg] == 'u32':
             paramtype = "uint32_t"
