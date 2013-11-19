@@ -1,5 +1,6 @@
 #include "moniter.h"
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -7,6 +8,9 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/syslog.h>
+#include <sys/signal.h>
+#include <sys/prctl.h>
 #include "hydralog.h"
 #include "shmem.h"
 #include "hydralog.h"
@@ -28,6 +32,9 @@ typedef struct node_status {
     uint32_t load_avg;
 } NodeStatus;
 
+void hydra_mon_run(void);
+void hydra_mon_sighandler(int);
+
 int hydra_mon_init(const char* whitelist_file_name) {
     size_t strings_size = 0;
     size_t data_size    = sizeof(MoniterData);
@@ -46,8 +53,8 @@ int hydra_mon_init(const char* whitelist_file_name) {
 
     while (fgets(host, 128, whitelist) != NULL) {
         host_len = strlen(host);
-        if (host[host_len] != '\n' && host[0] != '#') {
-            hydra_log(HYDRA_LOG_CRIT, "Hostname longer than 127 characters");
+        if (host_len == 127 && host[host_len] != '\n' && host[0] != '#') {
+            hydra_log(HYDRA_LOG_CRIT, "Hostname longer than 127 characters (%d chars)", host_len);
             hydra_exit_error("Exiting, whitelist has an overly long hostname");
         }
         //Append a node status and update the state of things
@@ -76,9 +83,45 @@ int hydra_mon_init(const char* whitelist_file_name) {
     free(strings);
     free(status_data);
     fclose(whitelist);
-    return 0;
+
+    //and kick off the pinger thingy
+    i = fork();
+    if (i < 0) {
+        return -1;
+    } else if (i == 0) {
+        hydra_mon_run();
+        return 0;
+    } else {
+        return 0;
+    }
+}
+
+void hydra_mon_run() {
+    struct sigaction act;
+    //Change the open log to hydramd_dispatch
+    openlog("hydramd_dispatch", LOG_PID, LOG_DAEMON);
+    //Request that the kernel inform us when our parent is murdered
+    prctl(PR_SET_PDEATHSIG, SIGHUP);
+    //Exit cleanly on deadly signals, we don't want to accidently shut down all
+    //the things (twice) if we sigsev =D
+    act.sa_handler = hydra_mon_sighandler;
+    sigaction(SIGSEGV, &act, NULL);
+    sigaction(SIGKILL, &act, NULL);
+    sigaction(SIGTERM, &act, NULL);
+    sigaction(SIGINT , &act, NULL);
+    sigaction(SIGHUP , &act, NULL);
+    hydra_log(HYDRA_LOG_INFO, "Hydramon forked and set up, begining pings");
+    for (;;) {
+        hydra_log(HYDRA_LOG_INFO, "Magic!");
+        sleep(10);
+    }
 }
 
 int hydra_mon_destroy() {
     return hydra_shmem_destroy(status_semid, status_shmem);
+}
+
+void hydra_mon_sighandler(int sig) {
+    hydra_log(HYDRA_LOG_CRIT, "Hydra monitor caught deadly signal %d, exiting", sig);
+    exit(sig);
 }

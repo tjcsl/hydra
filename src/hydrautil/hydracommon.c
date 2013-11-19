@@ -58,12 +58,13 @@ void hydra_daemonize(const char* progname, const char* running_directory
     sprintf(str, "%d\n", getpid());
     write(lfp, str, strlen(str));
 
-    signal(SIGCHLD, SIG_IGN);
-    signal(SIGTSTP, SIG_IGN);
-    signal(SIGTSTP, SIG_IGN);
-    signal(SIGTTOU, SIG_IGN);
-    signal(SIGTTIN, SIG_IGN);
-    signal(SIGHUP, sighandler);
+    signal(SIGCHLD, sighandler);
+    signal(SIGTSTP, sighandler);
+    signal(SIGTSTP, sighandler);
+    signal(SIGTTOU, sighandler);
+    signal(SIGTTIN, sighandler);
+    signal(SIGHUP , sighandler);
+    signal(SIGINT , sighandler);
     signal(SIGTERM, sighandler);
 
     hydra_log(HYDRA_LOG_INFO, "Daemon successfully daemonized");

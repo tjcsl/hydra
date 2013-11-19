@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <string.h>
 
@@ -133,8 +134,10 @@ int parse_config(void * user_data, const char* section, const char* name, const 
 }
 
 void handlesignal(int sig) {
+    int i;
     hydra_log(HYDRA_LOG_INFO, "Received signal %d", sig);
     switch(sig) {
+        case SIGINT:
         case SIGTERM:
             hydra_log(HYDRA_LOG_INFO, "Shutting down hydramd");
             hydra_dispatcher_destroy();
@@ -143,7 +146,14 @@ void handlesignal(int sig) {
             free(config.run_location);
             free(config.pid_file);
             free(config.whitelist_location);
+            hydra_log(HYDRA_LOG_INFO, "Hydramd shut down, calling exit(0)");
             exit(0);
+            break;
+        case SIGCHLD:
+            wait(&i);
+            if (i != SIGTERM) {
+                hydra_log(HYDRA_LOG_CRIT, "!!!WARNING!!! HYDRA STATUS MONITER SHUT DOWN WITH SIGNAL %d", i);
+            }
             break;
     }
 }
