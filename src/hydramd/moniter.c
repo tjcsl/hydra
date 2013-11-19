@@ -46,28 +46,46 @@ int hydra_mon_init(const char* whitelist_file_name) {
     int i;
     FILE *whitelist;
     MoniterData *mon_data;
+    NodeStatus *node_data;
 
     ((MoniterData *)status_data)->num_nodes = 0;
 
     whitelist = fopen(whitelist_file_name, "r");
 
+    mon_data = (MoniterData *) status_data;
+    mon_data->num_nodes = 0;
     while (fgets(host, 128, whitelist) != NULL) {
         host_len = strlen(host);
         if (host_len == 127 && host[host_len] != '\n' && host[0] != '#') {
             hydra_log(HYDRA_LOG_CRIT, "Hostname longer than 127 characters (%d chars)", host_len);
             hydra_exit_error("Exiting, whitelist has an overly long hostname");
         }
+        hydra_log(HYDRA_LOG_DEBUG, "Read hostname %s", host);
         //Append a node status and update the state of things
-        mon_data = (MoniterData *) status_data;
         mon_data->num_nodes++;
         data_size += sizeof(NodeStatus);
+
+        hydra_log(HYDRA_LOG_DEBUG, "Resizing status storage to %d", data_size);
+
         status_data = realloc(status_data, data_size);
-        offset = sizeof(MoniterData) + sizeof(NodeStatus) * (mon_data->num_nodes - 1);
+        mon_data = (MoniterData *) status_data;
+
+        hydra_log(HYDRA_LOG_DEBUG, "Calculating offset into status storage");
+
+        offset = sizeof(MoniterData) + (sizeof(NodeStatus) * (mon_data->num_nodes - 1));
+        hydra_log(HYDRA_LOG_DEBUG, "Cleaning status storage for node %d, offset %d length %d", mon_data->num_nodes, offset, sizeof(NodeStatus));
         memset(status_data + offset, 0, sizeof(NodeStatus));
+
+        hydra_log(HYDRA_LOG_DEBUG, "O:%d, D:%d", offset, data_size);
+
         //And put the string in.
-        ((NodeStatus*) (status_data + offset))->hostname_offset = strings_size;
+        node_data = ((NodeStatus*) (status_data + offset));
+        node_data->hostname_offset = strings_size;
         strings_size += host_len + 1;
         strings = realloc(strings, strings_size);
+        memcpy(strings + node_data->hostname_offset, host, host_len + 1);
+
+        hydra_log(HYDRA_LOG_DEBUG, "O:%d, S:%d", offset, strings_size);
     }
 
     //Add data_size as an offset so things actually work 'n stuff
@@ -80,6 +98,11 @@ int hydra_mon_init(const char* whitelist_file_name) {
     void *shmem = hydra_shmem_lock(status_semid, status_shmem);
     memcpy(shmem, status_data, data_size);
     memcpy(shmem + data_size, strings, strings_size);
+    //XXX: TESTING
+    FILE *tfile = fopen("testing.dump", "w");
+    fwrite(shmem, 1, data_size + strings_size, tfile);
+    fclose(tfile);
+    //XXX:TESTING
     free(strings);
     free(status_data);
     fclose(whitelist);
@@ -98,6 +121,10 @@ int hydra_mon_init(const char* whitelist_file_name) {
 
 void hydra_mon_run() {
     struct sigaction act;
+    int i;
+    MoniterData d;
+    void *data;
+    NodeStatus *status;
     //Change the open log to hydramd_dispatch
     openlog("hydramd_dispatch", LOG_PID, LOG_DAEMON);
     //Request that the kernel inform us when our parent is murdered
@@ -112,8 +139,17 @@ void hydra_mon_run() {
     sigaction(SIGHUP , &act, NULL);
     hydra_log(HYDRA_LOG_INFO, "Hydramon forked and set up, begining pings");
     for (;;) {
-        hydra_log(HYDRA_LOG_INFO, "Magic!");
-        sleep(10);
+        data = hydra_shmem_lock(status_semid, status_shmem);
+        d = *((MoniterData*)data);
+        //Macros to save typing
+#define GET_NODE_STATUS(off) ((NodeStatus*) (data + sizeof(MoniterData) + (off) * sizeof(NodeStatus)))
+        for (i = 0; i < d.num_nodes; ++i) {
+            status = GET_NODE_STATUS(i);
+            hydra_log(HYDRA_LOG_DEBUG, "Pinging node %s", (char*)(data + status->hostname_offset));
+        }
+        hydra_shmem_ulck(status_semid, data);
+#undef GET_NODE_STATUS
+        sleep(120);
     }
 }
 
