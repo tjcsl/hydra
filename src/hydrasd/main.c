@@ -1,9 +1,5 @@
 // Copyright 2013 Reed Koser, James Forcier, Michael Smith, Fox Wilson
 
-// TODO:
-// * Move sigterm_handler
-// * Move daemonize to lib
-// * Actually add some functionality!
 
 #include <sys/stat.h>
 #include <sys/types.h>
