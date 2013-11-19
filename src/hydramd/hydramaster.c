@@ -36,6 +36,7 @@ void hydra_listen(const char* service) {
         hydra_exit_error("No way to put our socket into listen mode");
     }
     
+    hydra_log(HYDRA_LOG_INFO, "Begining listen");
     for (;;) {
         fd = accept(listen_sock, (struct sockaddr*) &addr, &addrlen);
         if (fd < 0) {
