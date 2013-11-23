@@ -8,7 +8,6 @@
 #u16 generates functions that take unsigned 16 bit integerss
 #data generates functions that take (void *argname_data, int argname_len)
 #Special line for protocol version
-::SERIAL:1
 CHALLENGE       u32:challenge_id
 CHRESPONSE      u32:challenge_resp
 CHOK            byte:ok

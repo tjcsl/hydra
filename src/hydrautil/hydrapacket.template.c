@@ -10,7 +10,7 @@
 
 #include "hydralog.h"
 
-int read_data(int fd, int *len, void **data) {
+int read_data(int fd, size_t *len, void **data) {
     int i;
     if ((i = read(fd, len, 4)) < 4) {
         return i;
