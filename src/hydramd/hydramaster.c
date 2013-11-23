@@ -8,6 +8,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/signal.h>
+#include <sys/syslog.h>
+#include <sys/signal.h>
 #include <netdb.h>
 #include <fcntl.h>
 
@@ -21,6 +24,7 @@
 void hydra_read_connection(int fd);
 
 void handle_submit(int fd);
+void hydra_read_signal(int);
 
 void hydra_listen(const char* service) {
     struct sockaddr_in addr;
@@ -35,22 +39,23 @@ void hydra_listen(const char* service) {
     if (listen(listen_sock, 20) < 0) {
         hydra_exit_error("No way to put our socket into listen mode");
     }
-    
+
     hydra_log(HYDRA_LOG_INFO, "Begining listen");
     for (;;) {
+        hydra_log(HYDRA_LOG_DEBUG, "Waiting for more connections");
+
         fd = accept(listen_sock, (struct sockaddr*) &addr, &addrlen);
+        hydra_log(HYDRA_LOG_DEBUG, "accept returned");
         if (fd < 0) {
             hydra_log(HYDRA_LOG_WARN, "Error recieving connection: %d", errno);
-            break;
         } else {
-            hydra_log(HYDRA_LOG_INFO, "recieved connection");
-            
+            hydra_log(HYDRA_LOG_DEBUG, "Got connection");
             i = fork();
-            if (i == 0){
+            if (i == 0) {
                 close(listen_sock);
                 hydra_read_connection(fd);
-                hydra_log(HYDRA_LOG_INFO, "Hydramd thread shutting down");
-                return;
+                hydra_log(HYDRA_LOG_DEBUG, "Hydramd thread shutting down");
+                exit(0);
             }
         }
     }
@@ -59,11 +64,13 @@ void hydra_listen(const char* service) {
 
 void hydra_read_connection(int fd) {
     int id;
+    //We need to ignore signals because otherwise we clean up twice
+    hydra_register_signal_handler(hydra_read_signal);
     for (;;) {
         id = hydra_get_next_packettype(fd);
         if (id < 0) {
             if (errno == 0) {
-                hydra_log(HYDRA_LOG_INFO, "Lost connection, remote end probably hung up in a valid manner");
+                hydra_log(HYDRA_LOG_DEBUG, "Lost connection, remote end probably hung up in a valid manner");
                 return;
             }
             hydra_log(HYDRA_LOG_WARN, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), id);
@@ -72,12 +79,23 @@ void hydra_read_connection(int fd) {
         switch(id) {
             case HYDRA_PACKET_SUBMIT:
                 handle_submit(fd);
+                hydra_log(HYDRA_LOG_DEBUG, "Submit handled");
                 break;
             default:
                 hydra_log(HYDRA_LOG_DEBUG, "Packet type: %d", id);
         }
     }
     close(fd);
+}
+
+void hydra_read_signal(int sig) {
+    hydra_log(HYDRA_LOG_DEBUG, "Hydra listner recieved signal %d", sig);
+    switch(sig) {
+        case SIGTERM:
+        case SIGTSTP:
+            exit(-1);
+            break;
+    }
 }
 
 void handle_submit(int fd) {

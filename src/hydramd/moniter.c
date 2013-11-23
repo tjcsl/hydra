@@ -139,8 +139,10 @@ void hydra_mon_run() {
     sigaction(SIGHUP , &act, NULL);
     hydra_log(HYDRA_LOG_INFO, "Hydramon forked and set up, begining pings");
     for (;;) {
+        hydra_log(HYDRA_LOG_DEBUG, "Aquiring mem lock");
         data = hydra_shmem_lock(status_semid, status_shmem);
         d = *((MoniterData*)data);
+        hydra_log(HYDRA_LOG_DEBUG, "We have %d nodes to check", d.num_nodes);
         //Macros to save typing
 #define GET_NODE_STATUS(off) ((NodeStatus*) (data + sizeof(MoniterData) + (off) * sizeof(NodeStatus)))
         for (i = 0; i < d.num_nodes; ++i) {

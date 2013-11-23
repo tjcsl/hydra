@@ -44,7 +44,9 @@ int hydra_shmem_destroy(int semid, int shmemid) {
     ops.sem_op = 0;
     ops.sem_num = 0;
     ops. sem_flg = 0;
-    if (semop(semid, &ops, 1) < 0) {return -1;}
+    //We probably should have this but if things get kilt while locked we have a deadlock shutting down which is
+    //a Bad Thing (TM)
+//    if (semop(semid, &ops, 1) < 0) {return -1;}
     if (semctl(semid, 0, IPC_RMID) < 0) {return -1;}
     return shmctl(shmemid, IPC_RMID, NULL);
 }

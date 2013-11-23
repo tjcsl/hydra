@@ -49,7 +49,8 @@ void hydra_daemonize(const char* progname, const char* running_directory
     
     lfp = open(lockfile, O_RDWR | O_CREAT, 0640);
     if (lfp < 0) {
-        hydra_exit_error("Something has already locked the lockfile");
+        hydra_log(HYDRA_LOG_CRIT, "Failed to open logfile with error %d", errno);
+        hydra_exit_error("We failed to open or create the lockfile.");
     }
     if (lockf(lfp,F_TLOCK,0) < 0) {
         hydra_exit_error("We failed to lock our lockfile");
@@ -58,16 +59,22 @@ void hydra_daemonize(const char* progname, const char* running_directory
     sprintf(str, "%d\n", getpid());
     write(lfp, str, strlen(str));
 
-    signal(SIGCHLD, sighandler);
-    signal(SIGTSTP, sighandler);
-    signal(SIGTSTP, sighandler);
-    signal(SIGTTOU, sighandler);
-    signal(SIGTTIN, sighandler);
-    signal(SIGHUP , sighandler);
-    signal(SIGINT , sighandler);
-    signal(SIGTERM, sighandler);
+    hydra_register_signal_handler(sighandler);
 
     hydra_log(HYDRA_LOG_INFO, "Daemon successfully daemonized");
+}
+
+void hydra_register_signal_handler(void (*sighandler)(int)) {
+    struct sigaction a;
+    a.sa_handler = sighandler;
+    sigaction(SIGCHLD, &a, NULL);
+    sigaction(SIGTSTP, &a, NULL);
+    sigaction(SIGTSTP, &a, NULL);
+    sigaction(SIGTTOU, &a, NULL);
+    sigaction(SIGTTIN, &a, NULL);
+    sigaction(SIGHUP , &a, NULL);
+    sigaction(SIGINT , &a, NULL);
+    sigaction(SIGTERM, &a, NULL);
 }
 
 void hydra_exit_error(const char* err) {

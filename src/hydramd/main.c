@@ -150,9 +150,9 @@ void handlesignal(int sig) {
             exit(0);
             break;
         case SIGCHLD:
-            wait(&i);
-            if (i != SIGTERM) {
-                hydra_log(HYDRA_LOG_CRIT, "!!!WARNING!!! HYDRA STATUS MONITER SHUT DOWN WITH SIGNAL %d", i);
+            waitpid(-1, &i, WNOHANG);
+            if (WEXITSTATUS(i) != 0 && WEXITSTATUS(i) != SIGTERM) {
+                hydra_log(HYDRA_LOG_WARN, "WARNING: Child exited with status code %d", i);
             }
             break;
     }
