@@ -99,9 +99,9 @@ int main(int argc, char* argv[]){
     close(magic);
     //XXX: END TESTING
     //We don't actually use this yet, but we need to get it or things are sad
-    if ((i = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
+    if ((p.id = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
         if (i < 0) {
-            hydra_log(HYDRA_LOG_CRIT, "Error reading packet type: %s : %d", strerror(errno), i);
+            hydra_log(HYDRA_LOG_CRIT, "Error reading packet type: %s : %d", strerror(errno), p.id);
         } else {
             hydra_log(HYDRA_LOG_CRIT, "Unexpected packet type %d", i);
         }
