@@ -28,6 +28,7 @@ int main(int argc, char* argv[]){
     char* executable;
     char* slots;
     char** hmhost = malloc(sizeof(char*));
+    HydraPacket p;
     while((currarg = getopt(argc, argv, "d:s:e:h:")) != -1) {
         switch(currarg) {
             case 'd':
@@ -79,7 +80,6 @@ int main(int argc, char* argv[]){
         return 2;
     }
     // Time for actual socket communication.
-    uint32_t jobid;
     //XXX: TESTING
     int magic = open("/bin/bash", O_RDONLY);
     if (magic < 0) {
@@ -87,23 +87,23 @@ int main(int argc, char* argv[]){
         return -1;
     }
     //XXX: END TESTING
-    if (hydra_write_SUBMIT(sd, executable, strlen(executable) + 1, atoi(slots), magic) != 0) {
+    p.id = HYDRA_PACKET_SUBMIT;
+    p.submit.exe_name = executable;
+    p.submit.exe_name_length = strlen(executable) + 1;
+    p.submit.slots = atoi(slots);
+    p.submit.tar = magic;
+    if (hydra_write_packet(sd, &p) != 0) {
         hydra_log(HYDRA_LOG_INFO, "Write failed, %d", errno);
     }
     //XXX: TESTING
     close(magic);
     //XXX: END TESTING
-    int pt;
     //We don't actually use this yet, but we need to get it or things are sad
-    if((pt = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
-        hydra_log(HYDRA_LOG_CRIT, "Received malformed packet: %d", pt);
-        return 1;
-    }
-    if ((i = hydra_read_JOBOK(sd, &jobid)) != 0) {
+    if ((i = hydra_read_packet(sd, &p)) != 0) {
         hydra_log(HYDRA_LOG_CRIT, "Read failed %d %d", errno, i);
         return 1;
     }
-    hydra_log(HYDRA_LOG_INFO, "Jobid: %d", jobid);
+    hydra_log(HYDRA_LOG_INFO, "Jobid: %d", p.jobok.jobid);
 
     // We don't need this any more!
     close(sd);
