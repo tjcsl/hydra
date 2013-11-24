@@ -99,8 +99,17 @@ int main(int argc, char* argv[]){
     close(magic);
     //XXX: END TESTING
     //We don't actually use this yet, but we need to get it or things are sad
+    if ((i = hydra_get_next_packettype(sd)) != HYDRA_PACKET_JOBOK) {
+        if (i < 0) {
+            hydra_log(HYDRA_LOG_CRIT, "Error reading packet type: %s : %d", strerror(errno), i);
+        } else {
+            hydra_log(HYDRA_LOG_CRIT, "Unexpected packet type %d", i);
+        }
+        return -1;
+    }
+    hydra_log(HYDRA_LOG_INFO, "packet was %d", i);
     if ((i = hydra_read_packet(sd, &p)) != 0) {
-        hydra_log(HYDRA_LOG_CRIT, "Read failed %d %d", errno, i);
+        hydra_log(HYDRA_LOG_CRIT, "Read failed with %s: %d", strerror(errno), i);
         return 1;
     }
     hydra_log(HYDRA_LOG_INFO, "Jobid: %d", p.jobok.jobid);
