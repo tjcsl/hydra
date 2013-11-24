@@ -121,7 +121,9 @@ h.write("//must be set to the output file descriptor\n")
 h.write("extern int hydra_read_packet(int from_fd, HydraPacket *into);\n")
 h.write("//if writting things with type 'file' the fd field coresponding to the file argument\n")
 h.write("//must be set to a valid file desciptor\n")
-h.write("extern int hydra_write_packet(int to_fd, HydraPacket *from);\n");
+h.write("extern int hydra_write_packet(int to_fd, HydraPacket *from);\n")
+h.write("//Get the next packet type from fd\n")
+h.write("extern int hydra_get_next_packettype(int fd);\n")
 print_flower_box(h, "PACKET SPECIFICATIONS")
 
 h.write("#endif")
@@ -197,6 +199,7 @@ c.write("    return 0;\n")
 c.write("}\n\n")
 
 c.write("int hydra_write_packet(int fd, HydraPacket *in) {\n");
+gen_write_char('in->id')
 c.write("    switch (in->id) {\n")
 
 for packet_spec in packet_specs:

@@ -19,7 +19,7 @@
 
 void hydra_read_connection(int fd);
 
-void handle_submit(int fd, HydraPacket*);
+void handle_submit(int fd);
 
 void hydra_listen(const char* service) {
     struct sockaddr_in addr;
@@ -56,35 +56,35 @@ void hydra_listen(const char* service) {
 }
 
 void hydra_read_connection(int fd) {
-    int i;
-    HydraPacket p;
+    int id;
     for (;;) {
-        i = hydra_read_packet(fd, &p);
-        if (i < 0) {
+        id = hydra_get_next_packettype(fd);
+        if (id < 0) {
             if (errno == 0) {
                 hydra_log(HYDRA_LOG_INFO, "Lost connection, remote end probably hung up in a valid manner");
                 return;
             }
-            hydra_log(HYDRA_LOG_WARN, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), i);
+            hydra_log(HYDRA_LOG_WARN, "Read failed with %s returned %d. Remote end probably hung up unexpectedly.", strerror(errno), id);
             return;
         }
-        switch(p.id) {
+        switch(id) {
             case HYDRA_PACKET_SUBMIT:
-                handle_submit(fd, &p);
+                handle_submit(fd);
                 break;
             default:
-                hydra_log(HYDRA_LOG_INFO, "Packet type: %d", p.id);
+                hydra_log(HYDRA_LOG_DEBUG, "Packet type: %d", id);
         }
     }
+    close(fd);
 }
 
-void handle_submit(int fd, HydraPacket *submit) {
+void handle_submit(int fd) {
     int tmpfile;
     char tmpfilename[16];
     struct hydra_packet_submit sub;
     HydraPacket p;
     uint16_t jobid;
-    sub = submit->submit;
+    //Get a temporary file
     strcpy(tmpfilename, "/tmp/XXXXXX");
     mktemp(tmpfilename);
     if (strlen(tmpfilename) == 0) {
@@ -97,9 +97,15 @@ void handle_submit(int fd, HydraPacket *submit) {
         hydra_log(HYDRA_LOG_CRIT, "Error %s", strerror(errno));
         hydra_exit_error("Unable to open file descriptor");
     }
+    //Read the packet
+    p.id = HYDRA_PACKET_SUBMIT;
+    p.submit.tar = tmpfile;
+    hydra_read_packet(fd, &p);
     close(tmpfile);
     //unlink(tmpfilename);
+    sub = p.submit;
     hydra_log(HYDRA_LOG_DEBUG, "Submit read: %s %d %d", sub.exe_name, sub.exe_name_length, sub.slots);
+    free(sub.exe_name);
     jobid = hydra_dispatcher_get_jobid();
     hydra_log(HYDRA_LOG_DEBUG, "Replying with JOBID %d", jobid);
     hydra_dispatcher_set_job_active(jobid);
