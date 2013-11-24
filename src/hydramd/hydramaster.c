@@ -103,7 +103,7 @@ void handle_submit(int fd) {
     char tmpfilename[16];
     struct hydra_packet_submit sub;
     HydraPacket p;
-    uint16_t jobid;
+    uint32_t jobid;
     //Get a temporary file
     strcpy(tmpfilename, "/tmp/XXXXXX");
     mktemp(tmpfilename);
