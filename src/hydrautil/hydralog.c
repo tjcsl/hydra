@@ -36,8 +36,10 @@ int hydra_log(int level, const char* fmt, ...) {
             break;
         default:
             fprintf(stderr, "Invalid log target %d", target);
+            return -1;
     }
     va_end(args);
+    return 0;
 }
 
 void hydra_log_target(int t) {
