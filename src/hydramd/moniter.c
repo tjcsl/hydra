@@ -51,6 +51,9 @@ int hydra_mon_init(const char* whitelist_file_name) {
     ((MoniterData *)status_data)->num_nodes = 0;
 
     whitelist = fopen(whitelist_file_name, "r");
+    if (whitelist == NULL) {
+        hydra_exit_error("unable to open whitelist file");
+    }
 
     mon_data = (MoniterData *) status_data;
     mon_data->num_nodes = 0;
