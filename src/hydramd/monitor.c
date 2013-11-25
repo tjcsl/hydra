@@ -1,4 +1,4 @@
-#include "moniter.h"
+#include "monitor.h"
 
 #include <unistd.h>
 #include <stdlib.h>

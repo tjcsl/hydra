@@ -19,7 +19,7 @@
 #include "hydralog.h"
 #include "hydrapacket.h"
 #include "dispatcher.h"
-#include "moniter.h"
+#include "monitor.h"
 
 void hydra_read_connection(int fd);
 

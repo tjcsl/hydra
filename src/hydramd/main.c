@@ -19,7 +19,7 @@
 #include "hydramaster.h"
 #include "hydracommon.h"
 #include "dispatcher.h"
-#include "moniter.h"
+#include "monitor.h"
 
 void handlesignal(int);
 int parse_config(void *, const char*, const char*, const char*);
