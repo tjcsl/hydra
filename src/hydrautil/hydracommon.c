@@ -25,21 +25,16 @@ void hydra_daemonize(const char* progname, const char* running_directory
         close(i);
     }
 
-    i = fork();
+    //We want daemon() to not change directory but we do want it to close any 
+    //open file desecriptors
+    i = daemon(0, 0);
     if (i < 0) {
         hydra_exit_error("Fork failed");
-    }
-    if (i > 0) {
-        exit(0);
     }
 
     setsid();
     
     openlog(progname, LOG_PID, LOG_DAEMON);
-
-    i = open("/dev/null", O_RDWR);
-    dup(i);
-    dup(i);
 
     umask(027);
     if (chdir(running_directory) < 0) {
