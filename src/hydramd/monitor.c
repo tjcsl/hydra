@@ -1,5 +1,6 @@
 #include "monitor.h"
 
+#include <errno.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include "shmem.h"
 #include "hydralog.h"
 #include "hydracommon.h"
+#include "hydrapacket.h"
 
 static int status_shmem;
 static int status_semid;
@@ -171,9 +173,19 @@ void hydra_mon_sighandler(int sig) {
     exit(sig);
 }
 
+void invalidate_status(NodeStatus *status) {
+    status->load_avg = -1;
+    status->mb_ram = -1;
+    status->mb_free = -1;
+    status->slots = -1;
+}
+
 void ping_node(NodeStatus *status, const char* hostname) {
-    struct addrinfo hints, *result;
+    struct addrinfo hints, *result, *rp;
     int i;
+    int sock;
+    HydraPacket p;
+    memset(&p, 0, sizeof(HydraPacket));
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -181,12 +193,48 @@ void ping_node(NodeStatus *status, const char* hostname) {
     i = getaddrinfo(hostname, "51444", &hints, &result);
     time(&status->last_update);
     if (i != 0) {
-        hydra_log(HYDRA_LOG_CRIT,
-            "getaddrinfo returned non0 return value %d for node %s, assuming node is unreachable",
+        hydra_log(HYDRA_LOG_WARN,
+            "getaddrinfo returned non 0 return value %d for node %s, assuming node is unreachable",
             i, hostname);
-        status->slots = -1;
-        status->mb_ram = -1;
-        status->mb_free = -1;
-        status->load_avg = -1;
+        invalidate_status(status);
+        return;
     }
+
+    for (rp = result; rp != NULL; rp = rp->ai_next) {
+        sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sock < 0) continue;
+        if (bind(sock, rp->ai_addr, rp->ai_addrlen) == 0) break; /*success*/
+        close(sock);
+    }
+    if (!rp) {
+        hydra_log(HYDRA_LOG_WARN,
+                "Unable to contact node %s: error %s",
+                hostname, strerror(errno));
+        invalidate_status(status);
+        return;
+    }
+
+    freeaddrinfo(result);
+
+    p.id = HYDRA_PACKET_PING;
+    hydra_write_packet(sock, &p);
+    if (hydra_get_next_packettype(sock) != HYDRA_PACKET_HEARTBEAT) {
+        hydra_log(HYDRA_LOG_WARN,
+                "Got invalid response of type %d from node %s", 
+                p.id, hostname);
+        hydra_read_packet(sock, &p); //Just so things don't  get clogged up
+        invalidate_status(status);
+        return;
+    }
+    if (hydra_read_packet(sock, &p) < 0) {
+        hydra_log(HYDRA_LOG_WARN,
+                "Couldn't read response from node %s : %s", 
+                hostname, strerror(errno));
+        invalidate_status(status);
+        return;
+    }
+    status->slots = p.heartbeat.slots;
+    status->mb_free = p.heartbeat.mb_free;
+    status->mb_ram = p.heartbeat.mb_ram;
+    status->load_avg = p.heartbeat.load_avg;
 }
