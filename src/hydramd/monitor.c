@@ -1,5 +1,6 @@
 #include "monitor.h"
 
+#include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +12,8 @@
 #include <sys/syslog.h>
 #include <sys/signal.h>
 #include <sys/prctl.h>
+#include <sys/socket.h>
+#include <time.h>
 #include "hydralog.h"
 #include "shmem.h"
 #include "hydralog.h"
@@ -34,6 +37,7 @@ typedef struct node_status {
 
 void hydra_mon_run(void);
 void hydra_mon_sighandler(int);
+static void ping_node(NodeStatus*, const char*);
 
 int hydra_mon_init(const char* whitelist_file_name) {
     size_t strings_size = 0;
@@ -142,7 +146,6 @@ void hydra_mon_run() {
     sigaction(SIGHUP , &act, NULL);
     hydra_log(HYDRA_LOG_INFO, "Hydramon forked and set up, begining pings");
     for (;;) {
-        hydra_log(HYDRA_LOG_DEBUG, "Aquiring mem lock");
         data = hydra_shmem_lock(status_semid, status_shmem);
         d = *((MoniterData*)data);
         hydra_log(HYDRA_LOG_DEBUG, "We have %d nodes to check", d.num_nodes);
@@ -150,7 +153,8 @@ void hydra_mon_run() {
 #define GET_NODE_STATUS(off) ((NodeStatus*) (data + sizeof(MoniterData) + (off) * sizeof(NodeStatus)))
         for (i = 0; i < d.num_nodes; ++i) {
             status = GET_NODE_STATUS(i);
-            hydra_log(HYDRA_LOG_DEBUG, "Pinging node %s", (char*)(data + status->hostname_offset));
+            hydra_log(HYDRA_LOG_DEBUG, "Pinging node %d:%s", i, (char*)(data + status->hostname_offset));
+            ping_node(status, (char *)(data + status->hostname_offset));
         }
         hydra_shmem_ulck(status_semid, data);
 #undef GET_NODE_STATUS
@@ -165,4 +169,24 @@ int hydra_mon_destroy() {
 void hydra_mon_sighandler(int sig) {
     hydra_log(HYDRA_LOG_CRIT, "Hydra monitor caught deadly signal %d, exiting", sig);
     exit(sig);
+}
+
+void ping_node(NodeStatus *status, const char* hostname) {
+    struct addrinfo hints, *result;
+    int i;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    i = getaddrinfo(hostname, "51444", &hints, &result);
+    time(&status->last_update);
+    if (i != 0) {
+        hydra_log(HYDRA_LOG_CRIT,
+            "getaddrinfo returned non0 return value %d for node %s, assuming node is unreachable",
+            i, hostname);
+        status->slots = -1;
+        status->mb_ram = -1;
+        status->mb_free = -1;
+        status->load_avg = -1;
+    }
 }
