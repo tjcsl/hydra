@@ -152,7 +152,7 @@ void handlesignal(int sig) {
         case SIGCHLD:
             waitpid(-1, &i, WNOHANG);
             if (WEXITSTATUS(i) != 0 && WEXITSTATUS(i) != SIGTERM) {
-                hydra_log(HYDRA_LOG_WARN, "WARNING: Child exited with status code %d", i);
+                hydra_log(HYDRA_LOG_WARN, "WARNING: Child exited with status code %d", WEXITSTATUS(i));
             }
             break;
     }
