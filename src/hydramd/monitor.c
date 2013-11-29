@@ -146,6 +146,7 @@ void hydra_mon_run() {
     sigaction(SIGTERM, &act, NULL);
     sigaction(SIGINT , &act, NULL);
     sigaction(SIGHUP , &act, NULL);
+    sigaction(SIGPIPE, &act, NULL);
     hydra_log(HYDRA_LOG_INFO, "Hydramon forked and set up, begining pings");
     for (;;) {
         data = hydra_shmem_lock(status_semid, status_shmem);
@@ -169,6 +170,7 @@ int hydra_mon_destroy() {
 }
 
 void hydra_mon_sighandler(int sig) {
+    if (sig == SIGPIPE) { /* it's ok, we can ignore this */ return;}
     hydra_log(HYDRA_LOG_CRIT, "Hydra monitor caught deadly signal %d, exiting", sig);
     exit(sig);
 }
@@ -182,9 +184,11 @@ void invalidate_status(NodeStatus *status) {
 
 void ping_node(NodeStatus *status, const char* hostname) {
     struct addrinfo hints, *result, *rp;
+    struct timeval timeout;
     int i;
     int sock;
     HydraPacket p;
+
     memset(&p, 0, sizeof(HydraPacket));
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -194,18 +198,25 @@ void ping_node(NodeStatus *status, const char* hostname) {
     time(&status->last_update);
     if (i != 0) {
         hydra_log(HYDRA_LOG_WARN,
-            "getaddrinfo returned non 0 return value %d for node %s, assuming node is unreachable",
-            i, hostname);
+            "getaddrinfo returned %s for node %s, assuming node is unreachable",
+            gai_strerror(i), hostname);
         invalidate_status(status);
         return;
     }
 
+    timeout.tv_sec = 2;
+    timeout.tv_usec = 0;
+
     for (rp = result; rp != NULL; rp = rp->ai_next) {
+        hydra_log(HYDRA_LOG_DEBUG, "Result: %d %d %d %x", rp->ai_family, rp->ai_socktype, rp->ai_protocol, rp->ai_next);
         sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval)) < 0) {continue;}
+        if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval)) < 0) {continue;}
         if (sock < 0) continue;
         if (bind(sock, rp->ai_addr, rp->ai_addrlen) == 0) break; /*success*/
         close(sock);
     }
+
     if (!rp) {
         hydra_log(HYDRA_LOG_WARN,
                 "Unable to contact node %s: error %s",
@@ -217,7 +228,12 @@ void ping_node(NodeStatus *status, const char* hostname) {
     freeaddrinfo(result);
 
     p.id = HYDRA_PACKET_PING;
-    hydra_write_packet(sock, &p);
+    hydra_log(HYDRA_LOG_DEBUG, "p.id = %d", p.id);
+    if (hydra_write_packet(sock, &p) < 0) {
+        hydra_log(HYDRA_LOG_WARN, "Could not ping node: write failed");
+        invalidate_status(status);
+    }
+    hydra_log(HYDRA_LOG_DEBUG, "write socket worked");
     if (hydra_get_next_packettype(sock) != HYDRA_PACKET_HEARTBEAT) {
         hydra_log(HYDRA_LOG_WARN,
                 "Got invalid response of type %d from node %s", 
@@ -233,6 +249,7 @@ void ping_node(NodeStatus *status, const char* hostname) {
         invalidate_status(status);
         return;
     }
+    hydra_log(HYDRA_LOG_INFO, "Successfuly connected to node %s", hostname);
     status->slots = p.heartbeat.slots;
     status->mb_free = p.heartbeat.mb_free;
     status->mb_ram = p.heartbeat.mb_ram;
